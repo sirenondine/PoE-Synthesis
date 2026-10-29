@@ -50,7 +50,8 @@ namespace PoESynthesis
             foreach (var listing in state.LoadOrder.PriorityOrder)
             {
                 var mod = listing.Mod;
-                if (mod == null) continue;
+                // the outgoing patch carries earlier patchers' work in the same group (which may reference PoE); it is not a PoE patch
+                if (mod == null || listing.ModKey == state.PatchMod.ModKey) continue;
                 if (listing.ModKey == PoEKey || mod.ModHeader.MasterReferences.Any(m => m.Master == PoEKey))
                 {
                     PoEPlugins.Add(listing.ModKey);
