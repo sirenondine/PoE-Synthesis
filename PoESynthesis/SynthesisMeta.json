@@ -1,0 +1,8 @@
+{
+  "Nickname": "Paths of Empyrean Patcher",
+  "Visibility": "Visible",
+  "OneLineDescription": "Load-order patcher for Paths of Empyrean, ported from the official xEdit patcher",
+  "LongDescription": "Port of steelfeathers' Paths of Empyrean xEdit patcher to Synthesis. Tags new armor, clothing, jewelry and creature races with PoE keywords, adds Meltdown/Tailor/Jeweler perk conditions, creates Masterwork, Quality, crossbow, longbow and ammo variants with their recipes, and hooks new flora, ingredients, death items and tameable animals into PoE's systems. Every patcher has its own toggle, and records already handled by PoE or an official PoE patch are left alone.",
+  "PreferredAutoVersioning": "Default",
+  "RequiredMods": [ "PathsOfEmpyrean.esp" ]
+}
