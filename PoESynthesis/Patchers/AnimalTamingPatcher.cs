@@ -58,6 +58,7 @@ namespace PoESynthesis.Patchers
                 candidates.Add(race.FormKey);
             }
 
+            var skeletons = ReviewedSkeletons();
             foreach (var fk in candidates)
             {
                 var race = ctx.Current<IRaceGetter>(fk)!;
@@ -68,8 +69,52 @@ namespace PoESynthesis.Patchers
                 // option default: clothed races (falmer, goblins, ...) are not tameable
                 if (MonsterPatcher.CanPickpocket(ctx, race)) continue;
                 if (ctx.InFormList(ctx.PoE.RacesFrom, race) || ctx.EdidExists(edid + "_Tamed")) continue;
+                if (s.TrustPoEPatchCoverage && ctx.ReviewedByPoE.Contains(fk.ModKey))
+                {
+                    ctx.Log($"Not tameable {PatchContext.Show(race)}: its plugin has a PoE patch that left it alone");
+                    continue;
+                }
+                // a variant of a race PoE already judged (same skeleton) follows PoE's call
+                var skeleton = SkeletonPath(race);
+                if (skeleton != null && skeletons.TryGetValue(skeleton, out var poeTames))
+                {
+                    if (!poeTames)
+                    {
+                        ctx.Log($"Not tameable {PatchContext.Show(race)}: PoE doesn't tame the vanilla race with this skeleton");
+                        continue;
+                    }
+                }
+                // unknown skeleton: only plain animals; anything also tagged a creature (mimics, tentacle monsters, ...) needs the opt-in
+                else if (!s.NewCreatureTypes && (!ctx.HasKeyword(race, "ActorTypeAnimal") || ctx.HasKeyword(race, "ActorTypeCreature")))
+                {
+                    ctx.Log($"Not tameable {PatchContext.Show(race)}: new creature type (see 'New creature types')");
+                    continue;
+                }
                 CreateTameable(race, riding.GetValueOrDefault(fk));
             }
+        }
+
+        static string? SkeletonPath(IRaceGetter r)
+        {
+            var path = r.SkeletalModel?.Male?.File.GivenPath ?? r.SkeletalModel?.Female?.File.GivenPath;
+            return string.IsNullOrWhiteSpace(path) ? null : path.Replace('/', '\\').ToLowerInvariant();
+        }
+
+        /// <summary>Skeleton -> does PoE make some race with it tameable, over races from plugins PoE has reviewed (vanilla and patched mods).</summary>
+        Dictionary<string, bool> ReviewedSkeletons()
+        {
+            var map = new Dictionary<string, bool>();
+            foreach (var r in ctx.State.LoadOrder.PriorityOrder.Race().WinningOverrides())
+            {
+                var mod = r.FormKey.ModKey;
+                bool reviewed = ctx.PoEPlugins.Contains(mod) || ctx.ReviewedByPoE.Contains(mod) || !ctx.InScope(r.FormKey);
+                if (!reviewed || (r.Flags & Race.Flag.Playable) != 0 || r.EditorID?.EndsWith("_Tamed") == true) continue;
+                var skeleton = SkeletonPath(r);
+                if (skeleton == null) continue;
+                bool tame = ctx.InFormList(ctx.PoE.RacesFrom, r);
+                map[skeleton] = map.GetValueOrDefault(skeleton) || tame;
+            }
+            return map;
         }
 
         /// <summary>Walk the NPC template chain while it inherits traits, like PreloadNPC_AnimalTamingPatcher; leveled templates are skipped.</summary>

@@ -49,6 +49,10 @@ Records are skipped when any of these is true:
 - **General → Skip scripted items** (on): items with Papyrus scripts get no copies, new recipes
   or breakdowns. Devious Devices restraints and quest items are examples. Keyword tagging still
   applies.
+- **Animal Taming**: a new race is only made tameable when:
+  - its plugin has no official PoE patch already ("Trust PoE patch coverage");
+  - it isn't a variant of a race PoE declined to tame. A variant is a race with the same skeleton, e.g. a quest-specific giant;
+  - it's a plain animal, if no vanilla race shares its skeleton. New creature types (mimics, tentacle monsters, …) need "New creature types" turned on.
 - **Weapons & Armor → Crossbow descriptions**: writes `<patch name>_DESC.ini` to the Data folder
   in Description Framework's `0xID~Plugin|text` format.
 
@@ -59,6 +63,7 @@ Records are skipped when any of these is true:
 - Form-list additions go straight into FLST overrides in the patch instead of an exported SkyPatcher
   INI. The paired lists (Animal Tamer From/To, Lucky regular/lucky/token) are always appended
   together, so they stay lined up.
+- Taming is more conservative than the xEdit form's defaults (see Animal Taming above), because nobody reviews each race by hand in a load-order run.
 - Things that look like bugs in the xEdit scripts are fixed:
   - Common clothing that gets a new recipe also gets its Quality version. In the xEdit script the rank value was
     -1, so the Quality step never ran.

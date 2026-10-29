@@ -260,6 +260,16 @@ namespace PoESynthesis
         [SynthesisTooltip("Cows/goats give milk; spiders, chaurus, netch and scribs give venom with Well Trained.")]
         public bool CollectItems = true;
 
+        [SynthesisSettingName("Trust PoE patch coverage")]
+        [SynthesisTooltip("Don't add tameable races from plugins an official PoE patch already covers (e.g. the Creation Club content PoE ships patches for): " +
+            "if PoE's author didn't make a creature from that mod tameable, it was a choice.")]
+        public bool TrustPoEPatchCoverage = true;
+
+        [SynthesisSettingName("New creature types")]
+        [SynthesisTooltip("Make creatures (not animals) tameable even when they don't share a skeleton with a race PoE already made tameable. " +
+            "Off by default: in a whole load order this catches things like mimics and quest-only monsters.")]
+        public bool NewCreatureTypes = false;
+
         [SynthesisSettingName("Races to never make tameable")]
         public List<IFormLinkGetter<IRaceGetter>> ExcludedRaces = new();
 

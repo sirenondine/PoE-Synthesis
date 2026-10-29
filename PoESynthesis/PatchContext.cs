@@ -25,6 +25,8 @@ namespace PoESynthesis
 
         /// <summary>PathsOfEmpyrean.esp and every plugin that has it as a master.</summary>
         public readonly HashSet<ModKey> PoEPlugins = new();
+        /// <summary>Plugins a PoE plugin has as a master: PoE (or an official PoE patch) has already reviewed them.</summary>
+        public readonly HashSet<ModKey> ReviewedByPoE = new();
         /// <summary>Records overridden (not defined) by a PoE plugin: PoE already handled them.</summary>
         readonly HashSet<FormKey> poeTouched = new();
         readonly HashSet<ModKey> excluded;
@@ -59,6 +61,10 @@ namespace PoESynthesis
             }
             foreach (var key in PoEPlugins)
             {
+                foreach (var m in state.LoadOrder[key].Mod!.ModHeader.MasterReferences)
+                {
+                    if (!PoEPlugins.Contains(m.Master)) ReviewedByPoE.Add(m.Master);
+                }
                 foreach (var rec in state.LoadOrder[key].Mod!.EnumerateMajorRecords())
                 {
                     if (rec.FormKey.ModKey != key) poeTouched.Add(rec.FormKey);
