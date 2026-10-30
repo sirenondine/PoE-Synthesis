@@ -56,8 +56,14 @@ Records are skipped when any of these is true:
 - **General → Copies inherit KID / SkyPatcher keywords** (both on). Copies (Masterwork, Quality, unenchanted, crossbow/longbow, Lucky/Barbed) carry their original's plugin keywords. KID and SkyPatcher rules that select by keyword, EditorID substring or traits already reach them at runtime. Rules that pick the original by **identity** don't, so the patcher mirrors those onto the copies:
   - **Identity** means the original's EditorID, FormID, exact name or whole plugin (`Mod.esp`, `filterByModNames`, `filterByArmors`).
   - **KID** rules are written to `<patch name>_PoECopies_KID.ini` in the Data folder, keeping the original rule's traits, chance and other filter parts.
-  - **SkyPatcher** keyword lines are written to `SKSE/Plugins/SkyPatcher/<armor|weapon|ammo>/<patch name>_PoECopies.ini`. Only `keywordsToAdd`/`keywordsToRemove` are mirrored; stat and name changes are not.
+  - **SkyPatcher** keyword changes are written to `SKSE/Plugins/SkyPatcher/<armor|weapon|ammo>/<patch name>_PoECopies.ini`. The patcher replays your SkyPatcher armor/weapon/ammo INIs to see which lines actually reach each original, then writes object-list-only lines (`filterByArmors=<copies>:keywordsToAdd=…`).
   - Both files are regenerated every run. This covers the ANd (`AND_*`) keywords as well as any other runtime keywords.
+- **General → Copies follow SkyPatcher stat changes** (on). SkyPatcher can rewrite an original's armor rating, damage, value, weight or name in game, e.g. a Requiem rebalance. Rules keyed on keywords then also catch the copies and wipe their Masterwork/Quality bonuses. So the patcher:
+  1. replays the SkyPatcher armor/weapon/ammo INIs on each original, after a KID pass for runtime keywords. It follows SkyPatcher's own matching (positive filter groups OR together, exclusions must pass, object lists patch only the listed forms) and its set → add/multiply → match order. Items a `dwMatch`/`valueMatch` copies from are replayed too.
+  2. re-derives every copy with the same formulas used to build it.
+  3. writes the results to `SKSE/Plugins/SkyPatcher/<type>/zzzz_PoE_Synthesis_last/…/<patch name>_PoECopyStats.ini`, one folder deeper than any other SkyPatcher INI. SkyPatcher walks folders breadth-first, so this file loads last regardless of directory order.
+
+  Lines that use a filter the patcher can't evaluate are counted in the log and not replayed.
 - **Weapons & Armor → Crossbow descriptions**: writes `<patch name>_DESC.ini` to the Data folder
   in Description Framework's `0xID~Plugin|text` format.
 

@@ -61,6 +61,12 @@ namespace PoESynthesis
             "written to SKSE/Plugins/SkyPatcher/<type>/<patch name>_PoECopies.ini. Only keyword changes are mirrored, not stats or names.")]
         public bool InheritSkyPatcherKeywords = true;
 
+        [SynthesisSettingName("Copies follow SkyPatcher stat changes")]
+        [SynthesisTooltip("When SkyPatcher changes an original's armor rating, damage, value, weight or name in game (e.g. Requiem's rebalance), " +
+            "re-derive its PoE copies from those stats (Masterwork bonus on top, etc.) and write them to a SkyPatcher file that loads after every other rule, " +
+            "so keyword-based rules that also catch the copies don't wipe their bonuses.")]
+        public bool CopiesFollowSkyPatcherStats = true;
+
         [SynthesisTooltip("Log every patched or skipped record, not just the totals.")]
         public bool Verbose = false;
     }

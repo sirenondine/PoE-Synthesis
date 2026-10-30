@@ -42,7 +42,8 @@ namespace PoESynthesis
             if (s.WeaponsArmor.Enabled) new WeaponArmorPatcher(ctx, items, crafting, masterwork).Run();
             if (s.Ammo.Enabled) new AmmoPatcher(ctx, crafting).Run();
 
-            if (s.General.InheritKidKeywords || s.General.InheritSkyPatcherKeywords) new RuntimeKeywords(ctx).Run();
+            if (s.General.InheritKidKeywords) new RuntimeKeywords(ctx).Run();
+            if (s.General.InheritSkyPatcherKeywords || s.General.CopiesFollowSkyPatcherStats) new RuntimeStats(ctx).Run();
 
             Console.WriteLine($"Masterwork versions created: {masterwork.Created}");
             Console.WriteLine("Paths of Empyrean patcher finished.");

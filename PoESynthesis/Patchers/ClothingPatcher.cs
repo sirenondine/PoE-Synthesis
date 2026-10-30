@@ -12,7 +12,6 @@ namespace PoESynthesis.Patchers
     public class ClothingPatcher
     {
         const int CountBodyHead = 7, CountBody = 5, CountHood = 3, CountBoots = 3, CountOther = 2;
-        const float QualityMult = 1.35f;
         const int QualityAddBody = 26, QualityAddOther = 18;
 
         readonly PatchContext ctx;
@@ -191,7 +190,7 @@ namespace PoESynthesis.Patchers
             if (rare && ctx.EdidExists(QualityEdid(edid))) return null;
 
             var copy = ctx.Patch.Armors.DuplicateInAsNewRecord(rc);
-            ctx.RegisterCopy(copy, rc);
+            ctx.RegisterCopy(copy, rc, CopyStats.Identity);
             copy.ObjectEffect.Clear();
             copy.EditorID = edid;
             if (rare) return CreateQualityVersion(copy, overwrite: copy);
@@ -208,11 +207,10 @@ namespace PoESynthesis.Patchers
             var edid = QualityEdid(rc.EditorID);
             if (overwrite == null && ctx.EdidExists(edid)) return null;
             var q = overwrite ?? ctx.Patch.Armors.DuplicateInAsNewRecord(rc);
-            if (overwrite == null) ctx.RegisterCopy(q, rc);
-            q.EditorID = edid;
-            q.Name = "Quality " + (rc.Name?.String ?? "");
             var add = ctx.HasKeyword(rc, "ClothingBody") ? QualityAddBody : QualityAddOther;
-            q.Value = (uint)Math.Truncate(rc.Value * QualityMult + add);
+            if (overwrite == null) ctx.RegisterCopy(q, rc, CopyStats.Quality(add));
+            else ctx.ExtendCopy(q, CopyStats.Quality(add));
+            q.EditorID = edid;
             PatchContext.AddKeyword(q, ctx.PoE.QualityClothing);
             ctx.RegisterEdid(edid);
             quality++;

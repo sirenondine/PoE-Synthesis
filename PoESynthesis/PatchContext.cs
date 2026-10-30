@@ -190,7 +190,32 @@ namespace PoESynthesis
         /// <summary>Item copies this run made (Masterwork, Quality, variants, ...) -> the record each was copied from.</summary>
         public readonly Dictionary<FormKey, FormKey> CopiedFrom = new();
 
-        public void RegisterCopy(IMajorRecordGetter copy, IMajorRecordGetter source) => CopiedFrom[copy.FormKey] = source.FormKey;
+        readonly Dictionary<FormKey, Func<ItemStats, ItemStats>> copyTransforms = new();
+
+        /// <summary>Record a copy, write its stats derived from the source, and remember how so it can be re-derived later.</summary>
+        public void RegisterCopy(IMajorRecord copy, IMajorRecordGetter source, Func<ItemStats, ItemStats> transform)
+        {
+            CopiedFrom[copy.FormKey] = source.FormKey;
+            copyTransforms[copy.FormKey] = transform;
+            CopyStats.Write(copy, transform(CopyStats.Read(source)));
+        }
+
+        /// <summary>A copy changed again in place (rare clothing turned into its Quality version).</summary>
+        public void ExtendCopy(IMajorRecord copy, Func<ItemStats, ItemStats> transform)
+        {
+            var before = CopyStats.Read(copy);
+            var first = copyTransforms.TryGetValue(copy.FormKey, out var t) ? t : CopyStats.Identity;
+            copyTransforms[copy.FormKey] = s => transform(first(s));
+            CopyStats.Write(copy, transform(before));
+        }
+
+        /// <summary>A copy's stats when its original has <paramref name="original"/> (walks copies of copies).</summary>
+        public ItemStats DeriveCopy(FormKey copy, ItemStats original)
+        {
+            if (!CopiedFrom.TryGetValue(copy, out var src)) return original;
+            var t = copyTransforms.TryGetValue(copy, out var f) ? f : CopyStats.Identity;
+            return t(CopiedFrom.ContainsKey(src) ? DeriveCopy(src, original) : original);
+        }
 
         /// <summary>The load-order record a copy ultimately came from (a Masterwork of a crossbow variant leads to the crossbow).</summary>
         public FormKey OriginalOf(FormKey fk)

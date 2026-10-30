@@ -9,9 +9,8 @@ namespace PoESynthesis
     /// <summary>Dragonblood Masterwork versions, ported from PoEMasterworkVariant.pas.</summary>
     public class Masterwork
     {
-        const float MultPrice = 1.35f, WeightMult = 0.5f;
         const int AddPriceBody = 75, AddPriceHeadShield = 50, AddPriceOther = 30, AddPrice1H = 50, AddPrice2H = 75;
-        const int AddArmorBody = 3, AddArmorShield = 3, AddArmorOther = 2, AddDamage1H = 2, AddDamage2H = 3, AddCrit = 1;
+        const int AddArmorBody = 3, AddArmorShield = 3, AddArmorOther = 2, AddDamage1H = 2, AddDamage2H = 3;
 
         readonly PatchContext ctx;
         readonly Crafting crafting;
@@ -91,12 +90,8 @@ namespace PoESynthesis
             else (addPrice, addArmor) = (AddPriceOther, AddArmorOther);
 
             var mw = ctx.Patch.Armors.DuplicateInAsNewRecord(rc);
-            ctx.RegisterCopy(mw, rc);
+            ctx.RegisterCopy(mw, rc, CopyStats.MasterworkArmor(addPrice, addArmor));
             mw.EditorID = EdidFor(rc.EditorID);
-            mw.Name = "Masterwork " + (rc.Name?.String ?? "");
-            mw.Value = (uint)Math.Truncate(rc.Value * MultPrice + addPrice);
-            mw.Weight = rc.Weight * WeightMult;
-            mw.ArmorRating = rc.ArmorRating + addArmor;
             PatchContext.AddKeyword(mw, ctx.PoE.Masterwork);
             Finish(mw);
             return mw;
@@ -118,16 +113,8 @@ namespace PoESynthesis
             addPrice = AddPriceOther;
 
             var mw = ctx.Patch.Weapons.DuplicateInAsNewRecord(rc);
-            ctx.RegisterCopy(mw, rc);
+            ctx.RegisterCopy(mw, rc, CopyStats.MasterworkWeapon(addPrice, addDamage));
             mw.EditorID = EdidFor(rc.EditorID);
-            mw.Name = "Masterwork " + (rc.Name?.String ?? "");
-            if (mw.BasicStats != null)
-            {
-                mw.BasicStats.Value = (uint)Math.Truncate((rc.BasicStats?.Value ?? 0) * MultPrice + addPrice);
-                mw.BasicStats.Weight = (rc.BasicStats?.Weight ?? 0) * WeightMult;
-                mw.BasicStats.Damage = (ushort)((rc.BasicStats?.Damage ?? 0) + addDamage);
-            }
-            if (mw.Critical != null) mw.Critical.Damage = (ushort)(mw.Critical.Damage + AddCrit);
             PatchContext.AddKeyword(mw, ctx.PoE.Masterwork);
             Finish(mw);
             return mw;

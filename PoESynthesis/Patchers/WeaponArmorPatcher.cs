@@ -165,17 +165,8 @@ namespace PoESynthesis.Patchers
             shortbow.Name = ReplaceFirst(full, " Bow", " Shortbow");
 
             var lb = ctx.Patch.Weapons.DuplicateInAsNewRecord(shortbow);
-            ctx.RegisterCopy(lb, e);
+            ctx.RegisterCopy(lb, e, CopyStats.Longbow(n => ReplaceFirst(n, " Bow", " Longbow")));
             lb.EditorID = PatchContext.Prefix + edid + "_L";
-            lb.Name = ReplaceFirst(full, " Bow", " Longbow");
-            if (lb.BasicStats != null)
-            {
-                if (lb.BasicStats.Value > 0) lb.BasicStats.Value = (uint)Math.Truncate(lb.BasicStats.Value * 1.3f + 100);
-                if (lb.BasicStats.Weight > 0) lb.BasicStats.Weight = MathF.Truncate(lb.BasicStats.Weight + 4);
-                lb.BasicStats.Damage = (ushort)(lb.BasicStats.Damage + 3);
-            }
-            if (lb.Data != null) lb.Data.Speed = 0.2f + (lb.Data.Speed - 0.5f) / 0.5f * 0.18f;
-            if (lb.Critical != null) lb.Critical.Damage = (ushort)(lb.Critical.Damage + 1);
             PatchContext.AddKeyword(lb, ctx.PoE.Longbow);
 
             if (!lb.FirstPersonModel.IsNull && ctx.Cache.TryResolve<IStaticGetter>(lb.FirstPersonModel.FormKey, out var wnam))
@@ -326,44 +317,20 @@ namespace PoESynthesis.Patchers
         IWeaponGetter CreateVariant(IWeaponGetter e, string suffix, string namePrefix, Upgrade u)
         {
             var w = ctx.Patch.Weapons.DuplicateInAsNewRecord(e);
-            ctx.RegisterCopy(w, e);
+            ctx.RegisterCopy(w, e, CopyStats.Crossbow(namePrefix, u.HasFlag(Upgrade.Recurve), u.HasFlag(Upgrade.SpringLoaded),
+                u.HasFlag(Upgrade.LightWeight), u.HasFlag(Upgrade.Silenced)));
             w.EditorID = PatchContext.Prefix + e.EditorID + suffix;
-            w.Name = namePrefix + (e.Name?.String ?? "");
             var p = ctx.PoE;
-            if (u.HasFlag(Upgrade.Recurve))
-            {
-                AddValue(w, 40);
-                PatchContext.AddKeyword(w, p.Recurve);
-            }
-            if (u.HasFlag(Upgrade.SpringLoaded))
-            {
-                if (w.BasicStats != null && w.BasicStats.Weight > 0) w.BasicStats.Weight = MathF.Truncate(w.BasicStats.Weight + 1);
-                AddValue(w, 50);
-                if (w.Data != null) w.Data.Speed *= 0.85f;
-                PatchContext.AddKeyword(w, p.SpringLoaded);
-            }
-            // the xEdit script applies Silenced before Light-Weight on the silenced light-weight crossbow; the result is the same
-            if (u.HasFlag(Upgrade.LightWeight))
-            {
-                if (w.BasicStats != null && w.BasicStats.Weight > 0) w.BasicStats.Weight = MathF.Truncate(w.BasicStats.Weight * 0.66f);
-                AddValue(w, 30);
-                if (w.Data != null) w.Data.Speed *= 1.15f;
-                PatchContext.AddKeyword(w, p.LightWeight);
-            }
+            if (u.HasFlag(Upgrade.Recurve)) PatchContext.AddKeyword(w, p.Recurve);
+            if (u.HasFlag(Upgrade.SpringLoaded)) PatchContext.AddKeyword(w, p.SpringLoaded);
+            if (u.HasFlag(Upgrade.LightWeight)) PatchContext.AddKeyword(w, p.LightWeight);
             if (u.HasFlag(Upgrade.Silenced))
             {
-                AddValue(w, 40);
-                if (w.Data != null) w.Data.Speed *= 0.85f;
                 PatchContext.AddKeyword(w, p.Silenced);
                 AddSilencedScript(w);
             }
             ctx.RegisterEdid(w.EditorID);
             return w;
-        }
-
-        static void AddValue(Weapon w, int add)
-        {
-            if (w.BasicStats != null && w.BasicStats.Value > 0) w.BasicStats.Value = (uint)(w.BasicStats.Value + add);
         }
 
         void AddSilencedScript(Weapon w)
