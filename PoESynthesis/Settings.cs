@@ -51,6 +51,16 @@ namespace PoESynthesis
             "(Devious Devices restraints, quest items, ...): copies of those lose the script's identity checks. Keywords and conditions on their existing recipes still apply.")]
         public bool SkipScriptedItems = true;
 
+        [SynthesisSettingName("Copies inherit KID keywords")]
+        [SynthesisTooltip("KID rules that pick an original armor/weapon/ammo by EditorID, FormID, exact name or plugin don't reach its PoE copies " +
+            "(Masterwork, Quality, unenchanted, variants). Mirror them onto the copies in <patch name>_PoECopies_KID.ini in the Data folder.")]
+        public bool InheritKidKeywords = true;
+
+        [SynthesisSettingName("Copies inherit SkyPatcher keywords")]
+        [SynthesisTooltip("Same for SkyPatcher armor/weapon/ammo lines that add or remove keywords on specific originals (filterByArmors/Weapons/Ammos, filterByModNames): " +
+            "written to SKSE/Plugins/SkyPatcher/<type>/<patch name>_PoECopies.ini. Only keyword changes are mirrored, not stats or names.")]
+        public bool InheritSkyPatcherKeywords = true;
+
         [SynthesisTooltip("Log every patched or skipped record, not just the totals.")]
         public bool Verbose = false;
     }

@@ -71,6 +71,7 @@ namespace PoESynthesis.Patchers
             var p = ctx.PoE;
             var full = rc.Name?.String ?? "";
             var copy = ctx.Patch.Ammunitions.DuplicateInAsNewRecord(rc);
+            ctx.RegisterCopy(copy, rc);
             copy.EditorID = PatchContext.Prefix + edid + SuffixLucky;
             PatchContext.AddKeyword(copy, p.Lucky);
             copy.Name = PrefixNameLucky + full;
@@ -118,6 +119,7 @@ namespace PoESynthesis.Patchers
             var full = rc.Name?.String ?? "";
 
             var copy = ctx.Patch.Ammunitions.DuplicateInAsNewRecord(rc);
+            ctx.RegisterCopy(copy, rc);
             copy.EditorID = PatchContext.Prefix + edid + suffix;
             copy.Name = preName + full;
             var oldDesc = rc.Description?.String ?? "";

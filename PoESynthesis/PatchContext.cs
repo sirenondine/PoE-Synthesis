@@ -109,10 +109,9 @@ namespace PoESynthesis
 
         void ReadSkyPatcherFormLists()
         {
-            var dir = Path.Combine(State.DataFolderPath, "SKSE", "Plugins", "SkyPatcher", "formList");
-            if (!Directory.Exists(dir)) return;
+            var dirs = DataDirs("SKSE", "Plugins", "SkyPatcher", "formList").ToList();
             int lines = 0;
-            foreach (var file in Directory.EnumerateFiles(dir, "*.ini", SearchOption.AllDirectories))
+            foreach (var file in dirs.SelectMany(d => Directory.EnumerateFiles(d, "*.ini", SearchOption.AllDirectories)))
             {
                 foreach (var raw in File.ReadLines(file))
                 {
@@ -134,7 +133,23 @@ namespace PoESynthesis
                     lines++;
                 }
             }
-            Console.WriteLine($"Read {lines} SkyPatcher formList entries from {dir}");
+            if (dirs.Count > 0) Console.WriteLine($"Read {lines} SkyPatcher formList entries from {string.Join(", ", dirs)}");
+        }
+
+        /// <summary>
+        /// Every existing folder under Data matching the path in any letter case. Mods ship "SkyPatcher" and "skypatcher" side by side;
+        /// the game's virtual file system merges them, a plain Linux folder doesn't.
+        /// </summary>
+        public IEnumerable<string> DataDirs(params string[] segments)
+        {
+            IEnumerable<string> current = new[] { State.DataFolderPath.Path };
+            foreach (var seg in segments)
+            {
+                current = current.SelectMany(d => Directory.Exists(d)
+                    ? Directory.EnumerateDirectories(d).Where(c => Path.GetFileName(c).Equals(seg, StringComparison.OrdinalIgnoreCase))
+                    : Enumerable.Empty<string>()).ToList();
+            }
+            return current;
         }
 
         /// <summary>SkyPatcher forms are an EditorID or Plugin.esp|0xFormID; both are normalised to text we can compare.</summary>
@@ -171,6 +186,18 @@ namespace PoESynthesis
         /// <summary>May this item get copies, new recipes or breakdowns? Scripted items are left alone by default.</summary>
         public bool CanCopy(IMajorRecordGetter r) =>
             !(Settings.General.SkipScriptedItems && r is IHaveVirtualMachineAdapterGetter v && v.VirtualMachineAdapter?.Scripts.Count > 0);
+
+        /// <summary>Item copies this run made (Masterwork, Quality, variants, ...) -> the record each was copied from.</summary>
+        public readonly Dictionary<FormKey, FormKey> CopiedFrom = new();
+
+        public void RegisterCopy(IMajorRecordGetter copy, IMajorRecordGetter source) => CopiedFrom[copy.FormKey] = source.FormKey;
+
+        /// <summary>The load-order record a copy ultimately came from (a Masterwork of a crossbow variant leads to the crossbow).</summary>
+        public FormKey OriginalOf(FormKey fk)
+        {
+            for (int guard = 0; guard < 16 && CopiedFrom.TryGetValue(fk, out var src); guard++) fk = src;
+            return fk;
+        }
 
         // ---------------- EditorIDs ----------------
 

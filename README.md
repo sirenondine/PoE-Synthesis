@@ -53,6 +53,11 @@ Records are skipped when any of these is true:
   - its plugin has no official PoE patch already ("Trust PoE patch coverage");
   - it isn't a variant of a race PoE declined to tame. A variant is a race with the same skeleton, e.g. a quest-specific giant;
   - it's a plain animal, if no vanilla race shares its skeleton. New creature types (mimics, tentacle monsters, …) need "New creature types" turned on.
+- **General → Copies inherit KID / SkyPatcher keywords** (both on). Copies (Masterwork, Quality, unenchanted, crossbow/longbow, Lucky/Barbed) carry their original's plugin keywords. KID and SkyPatcher rules that select by keyword, EditorID substring or traits already reach them at runtime. Rules that pick the original by **identity** don't, so the patcher mirrors those onto the copies:
+  - **Identity** means the original's EditorID, FormID, exact name or whole plugin (`Mod.esp`, `filterByModNames`, `filterByArmors`).
+  - **KID** rules are written to `<patch name>_PoECopies_KID.ini` in the Data folder, keeping the original rule's traits, chance and other filter parts.
+  - **SkyPatcher** keyword lines are written to `SKSE/Plugins/SkyPatcher/<armor|weapon|ammo>/<patch name>_PoECopies.ini`. Only `keywordsToAdd`/`keywordsToRemove` are mirrored; stat and name changes are not.
+  - Both files are regenerated every run. This covers the ANd (`AND_*`) keywords as well as any other runtime keywords.
 - **Weapons & Armor → Crossbow descriptions**: writes `<patch name>_DESC.ini` to the Data folder
   in Description Framework's `0xID~Plugin|text` format.
 

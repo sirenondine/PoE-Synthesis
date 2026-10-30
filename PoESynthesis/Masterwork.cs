@@ -91,6 +91,7 @@ namespace PoESynthesis
             else (addPrice, addArmor) = (AddPriceOther, AddArmorOther);
 
             var mw = ctx.Patch.Armors.DuplicateInAsNewRecord(rc);
+            ctx.RegisterCopy(mw, rc);
             mw.EditorID = EdidFor(rc.EditorID);
             mw.Name = "Masterwork " + (rc.Name?.String ?? "");
             mw.Value = (uint)Math.Truncate(rc.Value * MultPrice + addPrice);
@@ -117,6 +118,7 @@ namespace PoESynthesis
             addPrice = AddPriceOther;
 
             var mw = ctx.Patch.Weapons.DuplicateInAsNewRecord(rc);
+            ctx.RegisterCopy(mw, rc);
             mw.EditorID = EdidFor(rc.EditorID);
             mw.Name = "Masterwork " + (rc.Name?.String ?? "");
             if (mw.BasicStats != null)

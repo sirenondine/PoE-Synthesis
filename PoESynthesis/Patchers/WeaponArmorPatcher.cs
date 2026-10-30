@@ -165,6 +165,7 @@ namespace PoESynthesis.Patchers
             shortbow.Name = ReplaceFirst(full, " Bow", " Shortbow");
 
             var lb = ctx.Patch.Weapons.DuplicateInAsNewRecord(shortbow);
+            ctx.RegisterCopy(lb, e);
             lb.EditorID = PatchContext.Prefix + edid + "_L";
             lb.Name = ReplaceFirst(full, " Bow", " Longbow");
             if (lb.BasicStats != null)
@@ -325,6 +326,7 @@ namespace PoESynthesis.Patchers
         IWeaponGetter CreateVariant(IWeaponGetter e, string suffix, string namePrefix, Upgrade u)
         {
             var w = ctx.Patch.Weapons.DuplicateInAsNewRecord(e);
+            ctx.RegisterCopy(w, e);
             w.EditorID = PatchContext.Prefix + e.EditorID + suffix;
             w.Name = namePrefix + (e.Name?.String ?? "");
             var p = ctx.PoE;
