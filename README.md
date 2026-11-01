@@ -5,9 +5,8 @@ A [Synthesis](https://github.com/Mutagen-Modding/Synthesis) port of the official
 by steelfeathers. It does what the xEdit scripts do, but across the whole load order in one run.
 Each part has its own on/off switch, and records that PoE or a PoE patch already covers are skipped.
 
-Ported from xEdit patcher **v1.1** (2026-10-24), plus the v1.2 (2026-10-30) fixes to the ammo and clothing patchers.
-The v1.2 spell patcher (spell effect scripts, scroll crafting, staff enchantment list) is not ported; its source
-is marked internal-only.
+Ported from xEdit patcher **v1.2** (2026-10-30). The v1.2 spell patcher's source is marked internal-only, but the
+main script runs it, so it is ported too (Spells below); turn **Spells** off to skip it.
 
 ## What it patches
 
@@ -20,6 +19,7 @@ is marked internal-only.
 | **Alchemy** | harvest overhaul for flora/trees (Green Thumb / Grim Harvest) · Adaptive Mutation lists · new Adaptive Mutation abilities · Grim Harvest on creature death items |
 | **Monsters** | Daring Fingersmith pickpocketing · no knockdowns · Apex Hunter type and points · Arkay's Judgement · legendary foes (pick the races) |
 | **Animal Taming** | tameable `_Tamed` races · milk/venom collection · excluded races and actors · rideable races (pick a race and its skeleton) |
+| **Spells** | Fire/Ice/Shock perk scripts · Sun keyword, Dust to Dust and Arkay's Judgement `_monster` copies · Poison/Disease keywords and Rite of the Old Gods `_rite` copies · Conjuration summon scripts and keywords · Potent summons (off by default) · Expanded Glyphs for runes · Careful Preparation/Spell Mastery tags for spells no tome teaches · scroll scribing templates and recipes · staff enchantment list |
 
 Each patcher has a master switch. Every feature inside it has its own switch too.
 
@@ -66,8 +66,15 @@ Records are skipped when any of these is true:
   3. writes the results to `SKSE/Plugins/SkyPatcher/<type>/zzzz_PoE_Synthesis_last/…/<patch name>_PoECopyStats.ini`, one folder deeper than any other SkyPatcher INI. SkyPatcher walks folders breadth-first, so this file loads last regardless of directory order.
 
   Lines that use a filter the patcher can't evaluate are counted in the log and not replayed.
-- **Weapons & Armor → Crossbow descriptions**: writes `<patch name>_DESC.ini` to the Data folder
-  in Description Framework's `0xID~Plugin|text` format.
+- **Weapons & Armor → Crossbow descriptions** and **Spells → Scroll template descriptions**: write
+  `<patch name>_DESC.ini` to the Data folder in Description Framework's `0xID~Plugin|text` format.
+- **Spells**: each magic effect's type is guessed the way the xEdit options page pre-fills its dropdown
+  (keywords, school, archetype, resist value, summoned actor). Fix a wrong guess under **Magic effect types**,
+  tick the xEdit "Caster Always Player" box under **Caster always player**, or skip an effect entirely
+  under **Magic effects to leave alone**. Like Animal Taming, plugins an official PoE patch covers are
+  left alone ("Trust PoE patch coverage"), and so are summoned actors that come from vanilla or PoE.
+  **Potent summons** is off because the new Potent actor is a plain copy: PoE's own Potent summons have
+  a higher level and more health, so each one needs editing by hand.
 
 ## Where it differs from the xEdit scripts
 
@@ -84,6 +91,15 @@ Records are skipped when any of these is true:
   - Tamed races keep their race flags above bit 21. The xEdit script rebuilt only the first 22 bits.
   - Grim Harvest and Green Thumb bonus lists can no longer share an EditorID.
   - The breakdown leather check also reads the item name.
+- Spells: Sun, Rite and Potent copies are added to every spell, scroll and staff enchantment that uses
+  the original effect, and keep that entry's magnitude, duration, area and conditions. The xEdit script
+  only reaches the first spell, scroll and staff, can't copy conditions, and asks you to fix them by hand.
+  Potent entries get the `HasPerk ElementalPotency` == 0 / == 1 conditions PoE's own summons use.
+- Spells: an effect used by several spells is patched once. In the xEdit script it is patched once per
+  spell, so a Sun or Poison effect's cost was halved, and its copy made, more than once.
+- Spells: the Expanded Glyphs ability for a rune gets its effect entry. PoE's template ability has none, so
+  the xEdit script's write to it does nothing. Each rune impact gets its own big copy; the xEdit script
+  points every material at the first one.
 - A longbow without a tempering recipe gets a stub tempering recipe that uses the bow's main
   material. The xEdit stub has no input at all.
 

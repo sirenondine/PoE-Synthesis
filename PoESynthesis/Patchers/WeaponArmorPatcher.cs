@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
@@ -17,7 +16,6 @@ namespace PoESynthesis.Patchers
         readonly Crafting crafting;
         readonly Masterwork masterwork;
         readonly WeaponArmorSettings s;
-        readonly List<string> descriptions = new();
 
         public WeaponArmorPatcher(PatchContext ctx, ItemChecks items, Crafting crafting, Masterwork masterwork)
         {
@@ -48,7 +46,6 @@ namespace PoESynthesis.Patchers
             if (s.CrossbowVariants) Crossbows(weapons);
             if (s.BoundWeapons) BoundWeapons(weapons);
 
-            if (s.CrossbowDescriptions && descriptions.Count > 0) WriteDescriptions();
         }
 
         // ---------------- keywords ----------------
@@ -284,7 +281,7 @@ namespace PoESynthesis.Patchers
                 var t2 = CreateVariantTemperRecipe(v, temper, edid, suffix);
                 crafting.CreateBreakdown(c2, v.FormKey);
                 if (s.Masterwork && masterwork.Available) masterwork.Process(v.FormKey, c2, t2);
-                descriptions.Add(Describe(v, desc));
+                if (s.CrossbowDescriptions) ctx.AddDescription(v, desc);
             }
 
             // Master Ranger dual upgrades: craftable from the base crossbow, or from either single upgrade
@@ -309,7 +306,7 @@ namespace PoESynthesis.Patchers
                 if (mw != null) masterwork.CreateRecipes(mw, fromA, null, "_1", createBreakdown: false);
                 var fromB = CreateVariantCraftRecipe(made[b].FormKey, v, ItemsFor(a), edid, suffix + "2", true);
                 if (mw != null) masterwork.CreateRecipes(mw, fromB, null, "_2", createBreakdown: false);
-                descriptions.Add(Describe(v, desc));
+                if (s.CrossbowDescriptions) ctx.AddDescription(v, desc);
             }
             ctx.Log($"     Created crossbow variants of {edid}");
         }
@@ -367,15 +364,6 @@ namespace PoESynthesis.Patchers
                 return null;
             }
             return crafting.CopyRecipe(temper, Crafting.PrefixTemper + origEdid + suffix, to.FormKey);
-        }
-
-        string Describe(IWeaponGetter v, string desc) => $"0x{v.FormKey.ID:X}~{v.FormKey.ModKey.FileName}|{desc}";
-
-        void WriteDescriptions()
-        {
-            var path = Path.Combine(ctx.State.DataFolderPath, Path.GetFileNameWithoutExtension(ctx.State.PatchMod.ModKey.FileName) + "_DESC.ini");
-            File.WriteAllLines(path, descriptions);
-            Console.WriteLine($"Wrote {descriptions.Count} crossbow descriptions to {path}");
         }
     }
 }

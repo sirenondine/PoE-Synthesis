@@ -40,6 +40,23 @@ namespace PoESynthesis
         // taming
         public readonly FormKey? TameAnimal, TameCreature, AlwaysFemale, Rideable, HasMilk, HasVenom, RacesFrom, RacesTo, TameExcluded;
         public readonly FormKey? MilkSm, MilkMd, VenomSpiderSm, VenomSpiderMd, VenomSpiderLg, VenomChaurusSm, VenomChaurusMd, VenomChaurusLg, VenomNetchSm, VenomNetchLg, VenomScrib;
+        // spells (PoESpellPatcher.pas)
+        public readonly FormKey? CarefulPrepExclude, SpellMasteryExclude, StaffEnchantments;
+        public readonly FormKey? Sear, ChainFire, ChainFireFrostCool, ChainFrost, ChainShock, ChainShockFireCool;
+        public readonly FormKey? PerkCatchFire, PerkForceNature, PerkImmolate, PerkSear;
+        public readonly FormKey? SpellCatchFire, SpellImmolate, SpellSear, SpellChainFireIce, SpellChainFireTimer, SpellChainShockFire, SpellChainShockTimer;
+        public readonly FormKey? Chill, ChainFrostShockCool, PerkChill, PerkFrostborn, PerkPierceCold, SpellChill, SpellFrostborn, SpellChainFrostTimer, SpellChainIceShock;
+        public readonly FormKey? Seizure, PerkSeizure, PerkStatic, SpellSeizure;
+        public readonly FormKey? PerkDustToDust, SpellDustToDust, MagicDamageSun, PerkArkaysJudgement, ActorTypeDaedra, ActorTypeDragon, RaceWerewolf, RaceWerebear, RaceHagraven;
+        public readonly FormKey? MagicDamagePoison, MagicDamageDisease, RiteOfTheOldGods;
+        public readonly FormKey? MagicSummonFire, MagicSummonFrost, MagicSummonShock, MagicSummonUndead, MagicSummonFamiliar, MagicSummonDaedra;
+        public readonly FormKey? AtronachFire, AtronachFrost, AtronachShock, PotentDaedra, ActorTypeUndead, ElementalPotency;
+        public readonly FormKey? SpiritGuideActive, SpiritGuideStoredSpells, PerkAtromancy, PerkDarkSouls, PerkFeelPain, PerkPlagueCarrier, PerkSpiritGuide, PerkRelentless;
+        public readonly FormKey? SpellDarkSouls, SpellFeelPain, SpellPlagueCarrier, SpellRelentless;
+        public readonly FormKey? ExpandedGlyphsEffect, ExpandedGlyphsAbility;
+        // scroll crafting (PoEScrollCrafting.pas)
+        public readonly FormKey? CraftingScroll, ScrollTemplateKeyword, ScrollTemplate, PaperRoll, SoulGemDust, PerkScrollScribe2;
+        public readonly FormKey? SkillAlteration, SkillConjuration, SkillDestruction, SkillIllusion, SkillRestoration;
         // vanilla
         public readonly FormKey MagicHatMarker = new(ModKey.FromNameAndExtension("Skyrim.esm"), 0x0435A5);
         public readonly FormKey EitherHand = new(ModKey.FromNameAndExtension("Skyrim.esm"), 0x013F44);
@@ -160,6 +177,90 @@ namespace PoESynthesis
             VenomNetchSm = P<IFormListGetter>("ISP_LIST_SPEECH_AnimalTamer_CollectVenomNetchRaces_Sm");
             VenomNetchLg = P<IFormListGetter>("ISP_LIST_SPEECH_AnimalTamer_CollectVenomNetchRaces_Lg");
             VenomScrib = P<IFormListGetter>("ISP_LIST_SPEECH_AnimalTamer_CollectVenomScribRaces");
+
+            CarefulPrepExclude = P<IKeywordGetter>("PoE_K_CarefulPrepExclude");
+            SpellMasteryExclude = P<IKeywordGetter>("PoE_K_SpellMasteryExclude");
+            StaffEnchantments = P<IFormListGetter>("PoE_LIST_StaffEnchantments");
+            Sear = P<IKeywordGetter>("PoE_K_SearingPain");
+            ChainFire = P<IKeywordGetter>("PoE_K_SpellChaining_Fire");
+            ChainFireFrostCool = P<IKeywordGetter>("PoE_K_SpellChaining_FireFrost_cool");
+            ChainFrost = P<IKeywordGetter>("PoE_K_SpellChaining_Frost");
+            ChainShock = P<IKeywordGetter>("PoE_K_SpellChaining_Shock");
+            ChainShockFireCool = P<IKeywordGetter>("PoE_K_SpellChaining_ShockFire_cool");
+            PerkCatchFire = P<IPerkGetter>("PoE_PERK_DES_CatchFire");
+            PerkForceNature = P<IPerkGetter>("PoE_PERK_DES_ForceOfNature");
+            PerkImmolate = P<IPerkGetter>("PoE_PERK_DES_Immolate");
+            PerkSear = P<IPerkGetter>("PoE_PERK_DES_SearingPain");
+            SpellCatchFire = P<ISpellGetter>("PoE_SPELL_DES_CatchFire");
+            SpellImmolate = P<ISpellGetter>("PoE_SPELL_DES_Immolate");
+            SpellSear = P<ISpellGetter>("PoE_SPELL_DES_SearingPain");
+            SpellChainFireIce = P<ISpellGetter>("PoE_SPELL_DES_SpellChaining_FireIce");
+            SpellChainFireTimer = P<ISpellGetter>("PoE_SPELL_DES_SpellChaining_FireTimer");
+            SpellChainShockFire = P<ISpellGetter>("PoE_SPELL_DES_SpellChaining_ShockFire");
+            SpellChainShockTimer = P<ISpellGetter>("PoE_SPELL_DES_SpellChaining_ShockTimer");
+            Chill = P<IKeywordGetter>("PoE_K_ChilledToTheBone");
+            ChainFrostShockCool = P<IKeywordGetter>("PoE_K_SpellChaining_FrostElectric_cool");
+            PerkChill = P<IPerkGetter>("PoE_PERK_DES_ChilledToTheBone");
+            PerkFrostborn = P<IPerkGetter>("PoE_PERK_DES_Frostborn");
+            PerkPierceCold = P<IPerkGetter>("PoE_PERK_DES_PiercingCold1");
+            SpellChill = P<ISpellGetter>("PoE_SPELL_DES_ChilledToTheBone");
+            SpellFrostborn = P<ISpellGetter>("PoE_SPELL_DES_Frostborn");
+            SpellChainFrostTimer = P<ISpellGetter>("PoE_SPELL_DES_SpellChaining_FrostTimer");
+            SpellChainIceShock = P<ISpellGetter>("PoE_SPELL_DES_SpellChaining_IceShock");
+            Seizure = P<IKeywordGetter>("PoE_K_Seizure_cooldown");
+            PerkSeizure = P<IPerkGetter>("PoE_PERK_DES_Seizure");
+            PerkStatic = P<IPerkGetter>("PoE_PERK_DES_StaticDrain");
+            SpellSeizure = P<ISpellGetter>("PoE_SPELL_DES_Seizure");
+            PerkDustToDust = P<IPerkGetter>("PoE_PERK_RES_DustToDust");
+            SpellDustToDust = P<ISpellGetter>("PoE_SPELL_RES_DustToDustOLD");
+            MagicDamageSun = P<IKeywordGetter>("MAG_MagicDamageSun");
+            PerkArkaysJudgement = P<IPerkGetter>("PoE_PERK_RES_ArkaysJudgement");
+            ActorTypeDaedra = V<IKeywordGetter>("ActorTypeDaedra");
+            ActorTypeDragon = V<IKeywordGetter>("ActorTypeDragon");
+            RaceWerewolf = V<IRaceGetter>("WerewolfBeastRace");
+            RaceWerebear = V<IRaceGetter>("DLC2WerebearBeastRace");
+            RaceHagraven = V<IRaceGetter>("HagravenRace");
+            MagicDamagePoison = P<IKeywordGetter>("MAG_MagicDamagePoison");
+            MagicDamageDisease = V<IKeywordGetter>("GRIM_K_MagicDamageDisease");
+            RiteOfTheOldGods = V<IKeywordGetter>("GRIM_K_RES_RiteOfTheOldGods");
+            MagicSummonFire = V<IKeywordGetter>("MagicSummonFire");
+            MagicSummonFrost = V<IKeywordGetter>("MagicSummonFrost");
+            MagicSummonShock = V<IKeywordGetter>("MagicSummonShock");
+            MagicSummonUndead = V<IKeywordGetter>("MagicSummonUndead");
+            MagicSummonFamiliar = V<IKeywordGetter>("MagicSummonFamiliar");
+            MagicSummonDaedra = P<IKeywordGetter>("SF_K_MagicSummonDaedra");
+            AtronachFire = P<IKeywordGetter>("PoE_K_IsAtronachFire");
+            AtronachFrost = P<IKeywordGetter>("PoE_K_IsAtronachFrost");
+            AtronachShock = P<IKeywordGetter>("PoE_K_IsAtronachShock");
+            PotentDaedra = P<IKeywordGetter>("IMP_K_PotentDaedra");
+            ActorTypeUndead = V<IKeywordGetter>("ActorTypeUndead");
+            ElementalPotency = V<IPerkGetter>("ElementalPotency");
+            SpiritGuideActive = P<IGlobalGetter>("PoE_GLO_CON_SpiritGuideActive");
+            SpiritGuideStoredSpells = P<IFormListGetter>("PoE_LIST_CON_SpiritGuide_storedSpellScrollEnch");
+            PerkAtromancy = P<IPerkGetter>("PoE_PERK_CON_Atromancy");
+            PerkDarkSouls = P<IPerkGetter>("PoE_PERK_CON_DarkSouls");
+            PerkFeelPain = P<IPerkGetter>("PoE_PERK_CON_FeelNoPain");
+            PerkPlagueCarrier = P<IPerkGetter>("PoE_PERK_CON_PlagueCarrier");
+            PerkSpiritGuide = P<IPerkGetter>("PoE_PERK_CON_SpiritGuide");
+            PerkRelentless = P<IPerkGetter>("PoE_PERK_CON_TheRelentless");
+            SpellDarkSouls = P<ISpellGetter>("PoE_SPELL_CON_DarkSouls");
+            SpellFeelPain = P<ISpellGetter>("PoE_SPELL_CON_FeelNoPain");
+            SpellPlagueCarrier = P<ISpellGetter>("PoE_SPELL_CON_PlagueCarrier");
+            SpellRelentless = P<ISpellGetter>("PoE_SPELL_CON_TheRelentless");
+            ExpandedGlyphsEffect = P<IMagicEffectGetter>("PoE_MGEF_ExpandedGlyphsFX");
+            ExpandedGlyphsAbility = P<ISpellGetter>("PoE_AB_ExpandedGlyphsFX");
+
+            CraftingScroll = P<IKeywordGetter>("PoE_K_CraftingScroll");
+            ScrollTemplateKeyword = P<IKeywordGetter>("PoE_K_ScrollScribeTemplate");
+            ScrollTemplate = P<IMiscItemGetter>("PoE_MISC_ScrollScribeTemplate");
+            PaperRoll = V<IMiscItemGetter>("PaperRoll");
+            SoulGemDust = P<IMiscItemGetter>("PoE_MISC_ENCH_SoulGemDust");
+            PerkScrollScribe2 = P<IPerkGetter>("PoE_PERK_ENCH_ScrollScribe2");
+            SkillAlteration = P<IKeywordGetter>("PoE_K_MagicSkillAlteration");
+            SkillConjuration = P<IKeywordGetter>("PoE_K_MagicSkillConjuration");
+            SkillDestruction = P<IKeywordGetter>("PoE_K_MagicSkillDestruction");
+            SkillIllusion = P<IKeywordGetter>("PoE_K_MagicSkillIllusion");
+            SkillRestoration = P<IKeywordGetter>("PoE_K_MagicSkillRestoration");
 
             if (missing.Count > 0)
             {

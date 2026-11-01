@@ -298,6 +298,21 @@ namespace PoESynthesis
         public string Edid(FormKey fk) =>
             Cache.TryResolve<IMajorRecordGetter>(fk, out var r) ? r.EditorID ?? fk.ToString() : fk.ToString();
 
+        // ---------------- Description Framework ----------------
+
+        /// <summary>Description Framework lines for new records, written to &lt;patch name&gt;_DESC.ini at the end of the run.</summary>
+        public readonly List<string> Descriptions = new();
+
+        public void AddDescription(IMajorRecordGetter r, string desc) => Descriptions.Add($"0x{r.FormKey.ID:X}~{r.FormKey.ModKey.FileName}|{desc}");
+
+        public void WriteDescriptions()
+        {
+            if (Descriptions.Count == 0) return;
+            var path = Path.Combine(State.DataFolderPath, Path.GetFileNameWithoutExtension(State.PatchMod.ModKey.FileName) + "_DESC.ini");
+            File.WriteAllLines(path, Descriptions);
+            Console.WriteLine($"Wrote {Descriptions.Count} descriptions to {path}");
+        }
+
         // ---------------- logging ----------------
 
         public void Log(string msg)

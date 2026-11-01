@@ -23,6 +23,8 @@ namespace PoESynthesis
         public MonsterSettings Monsters = new();
         [SynthesisSettingName("Animal Taming")]
         public AnimalTamingSettings AnimalTaming = new();
+        [SynthesisSettingName("Spells")]
+        public SpellSettings Spells = new();
     }
 
     public class GeneralSettings
@@ -302,5 +304,81 @@ namespace PoESynthesis
     {
         public IFormLinkGetter<IRaceGetter> Race = FormLink<IRaceGetter>.Null;
         public string Skeleton = "";
+    }
+
+    /// <summary>The xEdit spell options' magic effect type dropdown.</summary>
+    public enum MagicEffectType
+    {
+        NotApplicable, Fire, Ice, Shock, Poison, Disease, Sun,
+        SummonUndead, SummonUndeadGross, SummonFamiliar, SummonAtronachFire, SummonAtronachIce, SummonAtronachShock, SummonAtronachOther, SummonDaedra,
+    }
+
+    public class SpellSettings
+    {
+        [SynthesisTooltip("Master switch for the spell, scroll and staff patchers below.")]
+        public bool Enabled = true;
+
+        [SynthesisSettingName("Fire / Ice / Shock effects")]
+        [SynthesisTooltip("Destruction damage effects get PoE's element scripts (Searing Pain, Chilled to the Bone, Seizure, spell chaining, Force of Nature, ...).")]
+        public bool ElementEffects = true;
+
+        [SynthesisSettingName("Sun effects (Arkay's Judgement)")]
+        [SynthesisTooltip("Sun damage effects get the sun keyword and Dust to Dust, plus a half-cost '_monster' copy that only hits Arkay's Judgement monsters.")]
+        public bool SunEffects = true;
+
+        [SynthesisSettingName("Poison / Disease effects (Rite of the Old Gods)")]
+        [SynthesisTooltip("Poison and disease spell effects get their damage keyword, lose undead/dwarven/daedra target restrictions, and get a half-cost '_rite' copy that ignores resistance under Rite of the Old Gods.")]
+        public bool PoisonDiseaseEffects = true;
+
+        [SynthesisSettingName("Summon effects")]
+        [SynthesisTooltip("Summon effects get PoE's Conjuration script and summon-type keywords; summoned familiars, atronachs and daedra get PoE's summoned-actor script.")]
+        public bool SummonEffects = true;
+
+        [SynthesisSettingName("Potent summons (needs manual work)")]
+        [SynthesisTooltip("Familiar/daedra summon spells with a single effect get a Potent version for Daedric Potency. The Potent actor is a plain copy of the original: " +
+            "PoE's own Potent summons have higher level and health, so edit each new '_potent' actor yourself. Off by default.")]
+        public bool PotentSummons = false;
+
+        [SynthesisSettingName("Rune effects (Expanded Glyphs)")]
+        [SynthesisTooltip("Rune effects get a 1.5x bigger projectile/explosion/decal set and an Expanded Glyphs equip ability.")]
+        public bool RuneEffects = true;
+
+        [SynthesisSettingName("Tag spells not from tomes")]
+        [SynthesisTooltip("Effects of spells that no spell tome teaches (usually spells with special casting conditions) are excluded from Careful Preparation and Spell Mastery.")]
+        public bool TagNonTomeSpells = true;
+
+        [SynthesisSettingName("Scroll scribing recipes")]
+        [SynthesisTooltip("Scrolls of spells taught by a tome get a learnable 'Memorize:' template and scroll-scribing recipes (paper + soul gem dust).")]
+        public bool ScrollCrafting = true;
+
+        [SynthesisSettingName("Write scroll template descriptions")]
+        [SynthesisTooltip("Add 'Learn how to enscribe ... from memory.' Description Framework lines for the new templates to <patch name>_DESC.ini.")]
+        public bool ScrollTemplateDescriptions = true;
+
+        [SynthesisSettingName("Staff enchantment list")]
+        [SynthesisTooltip("Add staff enchantments to PoE's staff enchantment form list.")]
+        public bool StaffEnchantments = true;
+
+        [SynthesisSettingName("Magic effect types")]
+        [SynthesisTooltip("Override the guessed type of a magic effect (the xEdit options page's dropdown). NotApplicable keeps it out of the type-specific changes.")]
+        public List<MagicEffectTypeEntry> EffectTypes = new();
+
+        [SynthesisSettingName("Caster always player")]
+        [SynthesisTooltip("Effects that are cast remotely and/or always attributed to the player (the xEdit 'Caster Always Player' checkbox).")]
+        public List<IFormLinkGetter<IMagicEffectGetter>> CasterAlwaysPlayer = new();
+
+        [SynthesisSettingName("Trust PoE patch coverage")]
+        [SynthesisTooltip("Leave spells, scrolls and staff enchantments from plugins an official PoE patch already covers (Lost Grimoire, Creation Club content, ...): " +
+            "if PoE's author didn't patch a spell from that mod, it was a choice.")]
+        public bool TrustPoEPatchCoverage = true;
+
+        [SynthesisSettingName("Magic effects to leave alone")]
+        public List<IFormLinkGetter<IMagicEffectGetter>> ExcludedEffects = new();
+    }
+
+    public class MagicEffectTypeEntry
+    {
+        public IFormLinkGetter<IMagicEffectGetter> Effect = FormLink<IMagicEffectGetter>.Null;
+        public MagicEffectType Type = MagicEffectType.NotApplicable;
     }
 }
