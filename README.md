@@ -5,7 +5,9 @@ A [Synthesis](https://github.com/Mutagen-Modding/Synthesis) port of the official
 by steelfeathers. It does what the xEdit scripts do, but across the whole load order in one run.
 Each part has its own on/off switch, and records that PoE or a PoE patch already covers are skipped.
 
-Ported from xEdit patcher **v1.1** (2026-10-24). Its scripts are identical to v1; v1.1 only adds the icon for the file-picker button.
+Ported from xEdit patcher **v1.1** (2026-10-24), plus the v1.2 (2026-10-30) fixes to the ammo and clothing patchers.
+The v1.2 spell patcher (spell effect scripts, scroll crafting, staff enchantment list) is not ported; its source
+is marked internal-only.
 
 ## What it patches
 

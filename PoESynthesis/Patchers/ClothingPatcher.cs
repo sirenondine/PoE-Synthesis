@@ -107,8 +107,10 @@ namespace PoESynthesis.Patchers
                 rc = ctx.Current<IArmorGetter>(rc.FormKey) ?? rc;
             }
 
-            // the xEdit options only offer "Craft" for items without a template that aren't uniquely enchanted
-            bool canCraft = ctx.CanCopy(rc) && !ItemChecks.HasTemplate(rc) && !(enchanted && ctx.HasKeyword(rc, "MagicDisallowEnchanting")) && !notCraftable.Contains(rc.FormKey);
+            // the xEdit options only offer "Craft" for items without a recipe or template that aren't uniquely enchanted;
+            // already-craftable clothing always goes on to its Quality version (v1.2)
+            bool canCraft = ctx.CanCopy(rc) && (craftInfo != null
+                || (!ItemChecks.HasTemplate(rc) && !(enchanted && ctx.HasKeyword(rc, "MagicDisallowEnchanting")) && !notCraftable.Contains(rc.FormKey)));
             if (!canCraft || p.Cloth == null || p.PerkTailor == null) return;
             // already-craftable clothing is never "rare": it keeps its normal recipe and gets a Quality version
             bool rare = craftInfo == null && items.IsRareClothing(rc, edid, full);

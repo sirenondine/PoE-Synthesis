@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Records;
 using Mutagen.Bethesda.Skyrim;
 
 namespace PoESynthesis.Patchers
@@ -38,7 +39,9 @@ namespace PoESynthesis.Patchers
                 var edid = ammo.EditorID ?? ammo.FormKey.ToString();
                 if (doLucky) TryLucky(ammo, edid);
 
-                var craftInfo = ctx.Recipes.CraftingFor(ammo.FormKey) ?? ctx.Recipes.RecipesFor(ammo.FormKey).FirstOrDefault(r => r.Kind != RecipeKind.Temper);
+                // conversion recipes (ammo in, ammo out) aren't a model for new bolts (v1.2)
+                var craftInfo = ctx.Recipes.RecipesFor(ammo.FormKey).Where(r => r.Kind != RecipeKind.Temper && !IsConversion(r))
+                    .OrderByDescending(r => r.Kind == RecipeKind.Crafting).FirstOrDefault();
                 if (!doBolts || !ItemChecks.IsBolt(ammo) || craftInfo == null) continue;
                 var craft = ctx.Cache.Resolve<IConstructibleObjectGetter>(craftInfo.Cobj);
                 foreach (var (name, suffix, desc, kw) in new[] { ("Barbed ", "_barbed", DescBarbed, p.Barbed), ("Broadhead ", "_broadhead", DescBroadhead, p.Broadhead) })
@@ -62,6 +65,8 @@ namespace PoESynthesis.Patchers
             if (ctx.HasKeyword(ammo, p.Lucky) || ctx.InFormList(p.LuckyAmmoRegList, ammo) || ctx.EdidExists(PatchContext.Prefix + edid + SuffixLucky)) return;
             CreateLucky(ammo, edid);
         }
+
+        bool IsConversion(RecipeInfo r) => ctx.Current<IMajorRecordGetter>(r.FirstInput) is IAmmunitionGetter;
 
         bool IsRetrievable(IAmmunitionGetter ammo) =>
             ctx.Current<IProjectileGetter>(ammo.Projectile.FormKey) is { } proj && (proj.Flags & Projectile.Flag.CanBePickedUp) != 0;
