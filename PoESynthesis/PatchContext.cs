@@ -109,7 +109,8 @@ namespace PoESynthesis
 
         void ReadSkyPatcherFormLists()
         {
-            var dirs = DataDirs("SKSE", "Plugins", "SkyPatcher", "formList").ToList();
+            // PoE's patches ship them for SkyPatcher, and since PoE 1.5 for PoE's own DLL under SKSE/Plugins/POE, in the same syntax
+            var dirs = DataDirs("SKSE", "Plugins", "SkyPatcher", "formList").Concat(DataDirs("SKSE", "Plugins", "POE", "FormList")).ToList();
             int lines = 0;
             foreach (var file in dirs.SelectMany(d => Directory.EnumerateFiles(d, "*.ini", SearchOption.AllDirectories)))
             {

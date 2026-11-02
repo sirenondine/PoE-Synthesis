@@ -138,7 +138,12 @@ namespace PoESynthesis.Patchers
             var name = rc.Name?.String;
             bool xl = rc.Size == Size.ExtraLarge;
 
-            var t = ctx.Patch.Races.DuplicateInAsNewRecord(rc);
+            // the original race carries the tameable keywords too (xEdit patcher v1.3); the copy below inherits them
+            var o = ctx.Patch.Races.GetOrAddAsOverride(rc);
+            PatchContext.AddKeyword(o, ctx.HasKeyword(rc, "ActorTypeAnimal") ? p.TameAnimal : p.TameCreature);
+            if (ItemChecks.Has(edid, name, "spriggan")) PatchContext.AddKeyword(o, p.AlwaysFemale);
+
+            var t = ctx.Patch.Races.DuplicateInAsNewRecord(o);
             t.EditorID = edid + "_Tamed";
             t.MorphRace.SetTo(rc);
             t.ArmorRace.SetTo(rc);
@@ -147,9 +152,6 @@ namespace PoESynthesis.Patchers
             t.Flags |= Race.Flag.AllowPcDialog;
             if (!t.Regen.TryGetValue(BasicStat.Health, out var regen) || regen < 0.3f) t.Regen[BasicStat.Health] = 0.3f;
 
-            // rank 2 (exotic creature) when it isn't an animal
-            PatchContext.AddKeyword(t, ctx.HasKeyword(rc, "ActorTypeAnimal") ? p.TameAnimal : p.TameCreature);
-            if (ItemChecks.Has(edid, name, "spriggan")) PatchContext.AddKeyword(t, p.AlwaysFemale);
             if (!string.IsNullOrEmpty(skeleton) && p.Rideable != null)
             {
                 PatchContext.AddKeyword(t, p.Rideable);

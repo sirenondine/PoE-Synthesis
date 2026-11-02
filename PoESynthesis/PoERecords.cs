@@ -69,8 +69,8 @@ namespace PoESynthesis
 
         public static readonly string[] ApexTypes =
         {
-            "Bear", "Chaurus", "Daedra", "Dragon", "Draugr", "Dwarven", "Falmer", "Gargoyle", "Giant", "Hagraven", "Mammoth", "Mudcrab",
-            "Riekling", "Sabrecat", "Spider", "Spriggan", "Troll", "Werebeast", "Wisp", "Wolf",
+            "Bear", "Chaurus", "Daedra", "Deer", "Dragon", "Draugr", "Dwarven", "Falmer", "Gargoyle", "Giant", "Hagraven", "Mammoth", "Mudcrab",
+            "Riekling", "Rodent", "Sabrecat", "Spider", "Spriggan", "Troll", "Werebeast", "Wisp", "Wolf",
         };
 
         public PoERecords(PatchContext ctx)

@@ -5,7 +5,7 @@ A [Synthesis](https://github.com/Mutagen-Modding/Synthesis) port of the official
 by steelfeathers. It does what the xEdit scripts do, but across the whole load order in one run.
 Each part has its own on/off switch, and records that PoE or a PoE patch already covers are skipped.
 
-Ported from xEdit patcher **v1.2** (2026-10-30). The v1.2 spell patcher's source is marked internal-only, but the
+Ported from xEdit patcher **v1.3** (2026-11-02), for Paths of Empyrean 1.5. The spell patcher's source is marked internal-only, but the
 main script runs it, so it is ported too (Spells below); turn **Spells** off to skip it.
 
 ## What it patches
@@ -42,7 +42,8 @@ Records are skipped when any of these is true:
   (`PoE_<item>_M`, `PoE_<item>_Q`, `PoE_<ammo>_lucky`, `<race>_Tamed`, …). A Masterwork version is
   also skipped when the base recipe already has the Masterwork-active condition.
 - **The form already holds it.** This covers form lists, including entries that SkyPatcher
-  formList INIs under `SKSE/Plugins/SkyPatcher/formList` add at runtime.
+  formList INIs add at runtime: `SKSE/Plugins/SkyPatcher/formList`, and `SKSE/Plugins/POE/FormList` where PoE 1.5
+  and its patches now put them.
 
 ## Settings worth knowing
 
@@ -90,6 +91,9 @@ Records are skipped when any of these is true:
   - "Head and body" clothing really needs both slots.
   - Tamed races keep their race flags above bit 21. The xEdit script rebuilt only the first 22 bits.
   - Grim Harvest and Green Thumb bonus lists can no longer share an EditorID.
+  - Apex Hunter guesses Deer (deer, elk) and Rodent (skeever) like the vanilla races PoE 1.5 tags. The v1.3 xEdit
+    form never pre-selects them, and because its guess wasn't renumbered when the two were added, its pre-selected
+    category is one or two slots off for every race from Dragon down.
   - The breakdown leather check also reads the item name.
 - Spells: Sun, Rite and Potent copies are added to every spell, scroll and staff enchantment that uses
   the original effect, and keep that entry's magnitude, duration, area and conditions. The xEdit script

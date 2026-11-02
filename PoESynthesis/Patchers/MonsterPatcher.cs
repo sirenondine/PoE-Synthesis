@@ -49,6 +49,8 @@ namespace PoESynthesis.Patchers
             if (H("bear")) return "Bear";
             if (H("chaurus")) return "Chaurus";
             if (H("daedr", "dremora", "atronach")) return "Daedra";
+            // Deer and Rodent came with xEdit patcher v1.3; its own guess doesn't fill them in, so these follow the vanilla races PoE 1.5 tags (DeerRace, ElkRace, SkeeverRace)
+            if (H("deer", "elk")) return "Deer";
             if (H("dragon") || ctx.HasKeyword(r, "ActorTypeDragon")) return "Dragon";
             if (H("draugr", "skeleton", "lich", "undead")) return "Draugr";
             if (H("dwarven", "dwemer", "automaton")) return "Dwarven";
@@ -59,6 +61,7 @@ namespace PoESynthesis.Patchers
             if (H("mammoth")) return "Mammoth";
             if (H("mudcrab")) return "Mudcrab";
             if (H("riekling")) return "Riekling";
+            if (H("skeever")) return "Rodent";
             if (H("sabrecat")) return "Sabrecat";
             if (H("spider")) return "Spider";
             if (H("spriggan")) return "Spriggan";
@@ -85,9 +88,10 @@ namespace PoESynthesis.Patchers
                 if (s.NoKnockdowns && !ctx.HasKeyword(race, p.NoKnockdowns) && NoKnockdowns(race)) add.Add(p.NoKnockdowns);
                 if (legendary.Contains(race.FormKey) && !ctx.HasKeyword(race, p.Legendary)) add.Add(p.Legendary);
                 if (s.ArkaysJudgement && !ctx.HasKeyword(race, p.ArkayMonster) && IsMonster(race)) add.Add(p.ArkayMonster);
-                if (s.ApexHunter && !ctx.HasAnyKeyword(race, allApex) && ApexType(race) is { } apex)
+                // a category whose keyword this PoE version lacks (Deer/Rodent before PoE 1.5) is left for a later run
+                if (s.ApexHunter && !ctx.HasAnyKeyword(race, allApex) && ApexType(race) is { } apex && p.Apex[apex] is { } apexKeyword)
                 {
-                    add.Add(p.Apex[apex]);
+                    add.Add(apexKeyword);
                     add.Add(p.ApexPoints[(int)s.ApexHunterPoints]);
                 }
                 add.RemoveAll(k => k == null);

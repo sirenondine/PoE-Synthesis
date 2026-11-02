@@ -33,7 +33,7 @@ namespace PoESynthesis
             "Generated records (Masterwork, Quality, Lucky, ... versions) that already exist in the load order are never created twice, whatever this is set to.")]
         public bool SkipRecordsHandledByPoEPatches = true;
 
-        [SynthesisTooltip("Also treat records listed in SkyPatcher formList INIs (Data/SKSE/Plugins/SkyPatcher/formList) as already added to PoE form lists.")]
+        [SynthesisTooltip("Also treat records listed in formList INIs (Data/SKSE/Plugins/SkyPatcher/formList, and PoE 1.5's Data/SKSE/Plugins/POE/FormList) as already added to PoE form lists.")]
         public bool ReadSkyPatcherFormLists = true;
 
         [SynthesisTooltip("Only patch records that come from these plugins. Empty = every plugin that is not excluded below.")]
