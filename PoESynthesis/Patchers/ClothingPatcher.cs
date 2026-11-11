@@ -8,7 +8,10 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace PoESynthesis.Patchers
 {
-    /// <summary>PoEClothingPatcher.pas: Presence keywords, Tailor/Meltdown conditions, crafting/breakdown recipes, Quality versions.</summary>
+    /// <summary>
+    /// PoEClothingPatcher.pas: Presence keywords, Meltdown conditions, crafting/breakdown recipes. Since v1.4 (PoE 1.6+) only rare
+    /// clothing needs Tailor: it is made craftable as its Quality version. Other clothing gets no Quality version or Tailor condition.
+    /// </summary>
     public class ClothingPatcher
     {
         const int CountBodyHead = 7, CountBody = 5, CountHood = 3, CountBoots = 3, CountOther = 2;
@@ -19,7 +22,7 @@ namespace PoESynthesis.Patchers
         readonly Crafting crafting;
         readonly ClothingSettings s;
         readonly HashSet<FormKey> notCraftable;
-        int tagged, recipes, quality, conditions;
+        int tagged, recipes, quality, conditions, breakdowns;
 
         public ClothingPatcher(PatchContext ctx, ItemChecks items, Crafting crafting)
         {
@@ -46,18 +49,13 @@ namespace PoESynthesis.Patchers
                 }
             }
 
-            if (p.PerkTailor != null && (s.TailorConditions || s.BreakdownRecipes))
+            // existing crafting recipes stay as they are (v1.4: no Tailor condition), they only get a breakdown
+            if (s.BreakdownRecipes && p.PerkMeltdown != null)
             {
                 foreach (var r in RelevantRecipes(RecipeKind.Crafting, r => r.Output))
                 {
-                    var cobj = ctx.Cache.Resolve<IConstructibleObjectGetter>(r.Cobj);
-                    if (s.TailorConditions && !Crafting.HasPerkCondition(cobj, p.PerkTailor))
-                    {
-                        AddTailorCondition(crafting.Override(cobj));
-                        conditions++;
-                    }
                     var item = ctx.Current<IArmorGetter>(r.Output)!;
-                    if (s.BreakdownRecipes && crafting.CanCreateBreakdown(item, true)) crafting.CreateBreakdown(ctx.Current<IConstructibleObjectGetter>(r.Cobj)!);
+                    if (crafting.CanCreateBreakdown(item, true) && crafting.CreateBreakdown(ctx.Current<IConstructibleObjectGetter>(r.Cobj)!) != null) breakdowns++;
                 }
             }
 
@@ -66,20 +64,13 @@ namespace PoESynthesis.Patchers
             {
                 ProcessClothing(ctx.Current<IArmorGetter>(a.FormKey)!);
             }
-            Console.WriteLine($"Clothing: {tagged} tagged, {conditions} recipe conditions, {recipes} new crafting recipes, {quality} Quality versions");
+            Console.WriteLine($"Clothing: {tagged} tagged, {conditions} Meltdown conditions, {breakdowns} breakdowns for existing recipes, {recipes} new crafting recipes ({quality} of them Quality-only rare clothing)");
         }
 
         /// <summary>Clothing recipes whose own plugin or item is patched, and that PoE has not already handled.</summary>
         IEnumerable<RecipeInfo> RelevantRecipes(RecipeKind kind, Func<RecipeInfo, FormKey> item) =>
             ctx.Recipes.All.Where(r => r.Kind == kind && !ctx.HandledByPoE(r.Cobj) && (ctx.InScope(r.Cobj) || ctx.InScope(item(r)))
                 && ctx.Current<IMajorRecordGetter>(item(r)) is IArmorGetter a && items.IsClothing(a)).ToList();
-
-        void AddTailorCondition(ConstructibleObject cobj)
-        {
-            var output = ctx.Current<IArmorGetter>(cobj.CreatedObject.FormKey);
-            bool isQuality = output != null && ctx.HasKeyword(output, ctx.PoE.QualityClothing);
-            Crafting.AddAtTop(cobj, Crafting.PerkCondition(ctx.PoE.PerkTailor!.Value, isQuality));
-        }
 
         void ProcessClothing(IArmorGetter rc)
         {
@@ -108,53 +99,28 @@ namespace PoESynthesis.Patchers
             }
 
             // the xEdit options only offer "Craft" for items without a recipe or template that aren't uniquely enchanted;
-            // already-craftable clothing always goes on to its Quality version (v1.2)
-            bool canCraft = ctx.CanCopy(rc) && (craftInfo != null
-                || (!ItemChecks.HasTemplate(rc) && !(enchanted && ctx.HasKeyword(rc, "MagicDisallowEnchanting")) && !notCraftable.Contains(rc.FormKey)));
-            if (!canCraft || p.Cloth == null || p.PerkTailor == null) return;
-            // already-craftable clothing is never "rare": it keeps its normal recipe and gets a Quality version
-            bool rare = craftInfo == null && items.IsRareClothing(rc, edid, full);
+            // already-craftable clothing keeps its recipe as it is (v1.4: no Quality version any more)
+            if (craftInfo != null || !s.CreateCraftingRecipes || p.Cloth == null) return;
+            if (!ctx.CanCopy(rc) || ItemChecks.HasTemplate(rc) || (enchanted && ctx.HasKeyword(rc, "MagicDisallowEnchanting")) || notCraftable.Contains(rc.FormKey)) return;
+            // rare clothing is only craftable in Quality form, and only with Tailor
+            bool rare = items.IsRareClothing(rc, edid, full);
+            if (rare && (p.PerkTailor == null || p.QualityClothing == null)) return;
 
-            IConstructibleObjectGetter? cobj = null;
             IArmorGetter craftItem = rc;
-            if (craftInfo == null)
+            if (enchanted || rare)
             {
-                if (!s.CreateCraftingRecipes) return;
-                if (enchanted || rare)
-                {
-                    var made = CreateUnenchantedVersion(rc, enchanted, rare);
-                    if (made == null) return;
-                    craftItem = made;
-                }
-                var newRecipe = CreateClothingRecipe(craftItem);
-                cobj = newRecipe;
-                recipes++;
-                ctx.Log($"     Created crafting recipe -> {newRecipe.EditorID}");
-                if (s.BreakdownRecipes && p.PerkMeltdown != null)
-                {
-                    if (crafting.CanCreateBreakdown(craftItem, true)) crafting.CreateBreakdown(newRecipe);
-                    // the enchanted original breaks down like its new un-enchanted copy
-                    if (enchanted && crafting.CanCreateBreakdown(rc, true)) crafting.CreateBreakdown(newRecipe, rc.FormKey);
-                }
+                var made = CreateUnenchantedVersion(rc, enchanted, rare);
+                if (made == null) return;
+                craftItem = made;
             }
-            else
+            var newRecipe = CreateClothingRecipe(craftItem, rare);
+            recipes++;
+            ctx.Log($"     Created crafting recipe -> {newRecipe.EditorID}");
+            if (s.BreakdownRecipes && p.PerkMeltdown != null)
             {
-                cobj = ctx.Current<IConstructibleObjectGetter>(craftInfo.Cobj);
-            }
-            if (cobj == null) return;
-
-            // rare clothing is only craftable in Quality form, which it already is
-            if (s.QualityVersions && !rare && p.QualityClothing != null)
-            {
-                var q = CreateQualityVersion(ctx.Current<IArmorGetter>(craftItem.FormKey) ?? craftItem, overwrite: null);
-                if (q != null)
-                {
-                    var qRecipe = crafting.CopyRecipe(cobj, cobj.EditorID + "_Q", q.FormKey);
-                    var tailor = qRecipe.Conditions.FirstOrDefault(c => c.Data is IHasPerkConditionDataGetter d && d.Perk.Link.FormKey == p.PerkTailor.Value);
-                    if (tailor is ConditionFloat cf) cf.ComparisonValue = 1;
-                    else Crafting.AddAtTop(qRecipe, Crafting.PerkCondition(p.PerkTailor.Value, true));
-                    if (s.BreakdownRecipes && p.PerkMeltdown != null) crafting.CreateBreakdown(qRecipe);
-                }
+                if (crafting.CanCreateBreakdown(craftItem, true)) crafting.CreateBreakdown(newRecipe);
+                // the enchanted original breaks down like its new un-enchanted copy
+                if (enchanted && crafting.CanCreateBreakdown(rc, true)) crafting.CreateBreakdown(newRecipe, rc.FormKey);
             }
         }
 
@@ -184,7 +150,7 @@ namespace PoESynthesis.Patchers
             ctx.Log($"Tagged {PatchContext.Show(rc)}: {string.Join(", ", add.Select(k => ctx.KeywordEdid(k!.Value)))}");
         }
 
-        /// <summary>CreateUnenchantedVersion: craftable copy without the enchantment; rare clothing becomes its Quality version directly.</summary>
+        /// <summary>CreateUnenchantedVersion: craftable copy without the enchantment; rare clothing becomes its Quality version.</summary>
         IArmorGetter? CreateUnenchantedVersion(IArmorGetter rc, bool enchanted, bool rare)
         {
             var edid = enchanted ? PatchContext.Prefix + PatchContext.StripPrefix(rc.EditorID) + "_unench" : rc.EditorID;
@@ -195,7 +161,7 @@ namespace PoESynthesis.Patchers
             ctx.RegisterCopy(copy, rc, CopyStats.Identity);
             copy.ObjectEffect.Clear();
             copy.EditorID = edid;
-            if (rare) return CreateQualityVersion(copy, overwrite: copy);
+            if (rare) return CreateQualityVersion(copy, copy);
             ctx.RegisterEdid(copy.EditorID!);
             ctx.Log($"     Created unenchanted version for crafting -> {copy.EditorID}");
             return copy;
@@ -203,15 +169,12 @@ namespace PoESynthesis.Patchers
 
         static string QualityEdid(string? edid) => PatchContext.Prefix + PatchContext.StripPrefix(edid) + "_Q";
 
-        /// <summary>CreateQualityVersion: 'Quality ...' copy (or in-place conversion) worth more, tagged SF_K_QualityClothing.</summary>
-        IArmorGetter? CreateQualityVersion(IArmorGetter rc, Armor? overwrite)
+        /// <summary>CreateQualityVersion: in-place conversion of the rare item's copy into 'Quality ...', worth more, tagged SF_K_QualityClothing.</summary>
+        IArmorGetter CreateQualityVersion(IArmorGetter rc, Armor q)
         {
             var edid = QualityEdid(rc.EditorID);
-            if (overwrite == null && ctx.EdidExists(edid)) return null;
-            var q = overwrite ?? ctx.Patch.Armors.DuplicateInAsNewRecord(rc);
             var add = ctx.HasKeyword(rc, "ClothingBody") ? QualityAddBody : QualityAddOther;
-            if (overwrite == null) ctx.RegisterCopy(q, rc, CopyStats.Quality(add));
-            else ctx.ExtendCopy(q, CopyStats.Quality(add));
+            ctx.ExtendCopy(q, CopyStats.Quality(add));
             q.EditorID = edid;
             PatchContext.AddKeyword(q, ctx.PoE.QualityClothing);
             ctx.RegisterEdid(edid);
@@ -221,7 +184,7 @@ namespace PoESynthesis.Patchers
         }
 
         /// <summary>CreateClothingRecipe (new recipe): linen by slot, one less for cold/poor or fur items, plus a pelt for fur.</summary>
-        ConstructibleObject CreateClothingRecipe(IArmorGetter rc)
+        ConstructibleObject CreateClothingRecipe(IArmorGetter rc, bool requireTailor)
         {
             var p = ctx.PoE;
             var edid = rc.EditorID;
@@ -241,7 +204,7 @@ namespace PoESynthesis.Patchers
             if (fur && p.Pelt != null) inputs.Add((p.Pelt.Value, 1));
             var cobj = crafting.NewRecipe(Crafting.PrefixCraft + (edid ?? "").Replace(PatchContext.Prefix, "", StringComparison.OrdinalIgnoreCase),
                 rc.FormKey, 1, inputs, Crafting.TanningRack);
-            AddTailorCondition(cobj);
+            if (requireTailor) Crafting.AddAtTop(cobj, Crafting.PerkCondition(ctx.PoE.PerkTailor!.Value, true));
             return cobj;
         }
     }

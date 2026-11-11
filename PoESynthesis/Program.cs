@@ -31,7 +31,6 @@ namespace PoESynthesis
             var ctx = new PatchContext(state, s);
             var items = new ItemChecks(ctx);
             var crafting = new Crafting(ctx, items);
-            var masterwork = new Masterwork(ctx, crafting);
 
             // same order as the xEdit patcher's Finalize
             if (s.Clothing.Enabled) new ClothingPatcher(ctx, items, crafting).Run();
@@ -39,7 +38,7 @@ namespace PoESynthesis
             if (s.AnimalTaming.Enabled) new AnimalTamingPatcher(ctx).Run();
             if (s.GemsJewelry.Enabled) new GemsJewelryPatcher(ctx, items, crafting).Run();
             if (s.Alchemy.Enabled) new AlchemyPatcher(ctx).Run();
-            if (s.WeaponsArmor.Enabled) new WeaponArmorPatcher(ctx, items, crafting, masterwork).Run();
+            if (s.WeaponsArmor.Enabled) new WeaponArmorPatcher(ctx, items, crafting).Run();
             if (s.Ammo.Enabled) new AmmoPatcher(ctx, crafting).Run();
             if (s.Spells.Enabled) new SpellPatcher(ctx, crafting).Run();
 
@@ -47,7 +46,6 @@ namespace PoESynthesis
             if (s.General.InheritSkyPatcherKeywords || s.General.CopiesFollowSkyPatcherStats) new RuntimeStats(ctx).Run();
 
             ctx.WriteDescriptions();
-            Console.WriteLine($"Masterwork versions created: {masterwork.Created}");
             Console.WriteLine("Paths of Empyrean patcher finished.");
         }
     }

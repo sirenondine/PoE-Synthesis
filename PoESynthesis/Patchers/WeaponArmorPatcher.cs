@@ -8,21 +8,20 @@ using Mutagen.Bethesda.Skyrim;
 
 namespace PoESynthesis.Patchers
 {
-    /// <summary>PoEWeaponArmorPatcher.pas: armor tagging, Meltdown, breakdown, Masterwork, crossbow/longbow variants, bound weapons.</summary>
+    /// <summary>PoEWeaponArmorPatcher.pas: armor tagging, Meltdown, breakdown, crossbow/longbow variants, bound weapons.
+    /// No Masterwork versions since v1.4: PoE 1.6+ no longer needs them.</summary>
     public class WeaponArmorPatcher
     {
         readonly PatchContext ctx;
         readonly ItemChecks items;
         readonly Crafting crafting;
-        readonly Masterwork masterwork;
         readonly WeaponArmorSettings s;
 
-        public WeaponArmorPatcher(PatchContext ctx, ItemChecks items, Crafting crafting, Masterwork masterwork)
+        public WeaponArmorPatcher(PatchContext ctx, ItemChecks items, Crafting crafting)
         {
             this.ctx = ctx;
             this.items = items;
             this.crafting = crafting;
-            this.masterwork = masterwork;
             s = ctx.Settings.WeaponsArmor;
         }
 
@@ -40,9 +39,9 @@ namespace PoESynthesis.Patchers
             var craftArmor = armors.Where(a => !items.IsClothing(a) && !items.IsJewelry(a) && ctx.Recipes.CraftingFor(a.FormKey) != null).ToList();
             var craftWeapons = weapons.Where(w => ItemChecks.IsValidWeapon(w) && !ItemChecks.IsBound(w) && ctx.Recipes.CraftingFor(w.FormKey) != null).ToList();
 
-            foreach (var a in craftArmor) BreakdownAndMasterwork(a.FormKey);
+            foreach (var a in craftArmor) Breakdown(a.FormKey);
             if (s.Longbows) Longbows(weapons);
-            foreach (var w in craftWeapons) BreakdownAndMasterwork(w.FormKey);
+            foreach (var w in craftWeapons) Breakdown(w.FormKey);
             if (s.CrossbowVariants) Crossbows(weapons);
             if (s.BoundWeapons) BoundWeapons(weapons);
 
@@ -120,17 +119,13 @@ namespace PoESynthesis.Patchers
             Console.WriteLine($"Weapon/armor breakdown recipes given the Meltdown condition: {n}");
         }
 
-        void BreakdownAndMasterwork(FormKey item)
+        void Breakdown(FormKey item)
         {
+            if (!s.BreakdownRecipes) return;
             var craftInfo = ctx.Recipes.CraftingFor(item);
             if (craftInfo == null) return;
-            var craft = ctx.Cache.Resolve<IConstructibleObjectGetter>(craftInfo.Cobj);
-            var temperInfo = ctx.Recipes.TemperFor(item);
-            var temper = temperInfo == null ? null : ctx.Cache.Resolve<IConstructibleObjectGetter>(temperInfo.Cobj);
             var rec = ctx.Current<IMajorRecordGetter>(item)!;
-
-            if (s.BreakdownRecipes && crafting.CanCreateBreakdown(rec, false)) crafting.CreateBreakdown(craft);
-            if (s.Masterwork && masterwork.Available) masterwork.Process(item, craft, temper);
+            if (crafting.CanCreateBreakdown(rec, false)) crafting.CreateBreakdown(ctx.Cache.Resolve<IConstructibleObjectGetter>(craftInfo.Cobj));
         }
 
         // ---------------- longbows (PoELongbowVariant.pas) ----------------
@@ -188,18 +183,16 @@ namespace PoESynthesis.Patchers
             if (main != null && craft2.Items != null) craft2.Items[main.Value.Index].Item.Count = main.Value.Count + 1;
             crafting.CreateBreakdown(craft2);
 
-            IConstructibleObjectGetter temper2;
             if (temperInfo != null)
             {
-                temper2 = crafting.CopyRecipe(ctx.Cache.Resolve<IConstructibleObjectGetter>(temperInfo.Cobj), Crafting.PrefixTemper + edid + "_L", lb.FormKey);
+                crafting.CopyRecipe(ctx.Cache.Resolve<IConstructibleObjectGetter>(temperInfo.Cobj), Crafting.PrefixTemper + edid + "_L", lb.FormKey);
             }
             else
             {
                 // the xEdit script makes an empty stub here; a stub needs an input, so the bow's main material is used
                 var input = main?.Item ?? lb.FormKey;
-                temper2 = crafting.NewRecipe(Crafting.PrefixTemper + lb.EditorID, lb.FormKey, 1, new[] { (input, 1) }, Crafting.SharpeningWheel);
+                crafting.NewRecipe(Crafting.PrefixTemper + lb.EditorID, lb.FormKey, 1, new[] { (input, 1) }, Crafting.SharpeningWheel);
             }
-            if (s.Masterwork && masterwork.Available) masterwork.Process(lb.FormKey, craft2, temper2);
             return true;
         }
 
@@ -278,9 +271,8 @@ namespace PoESynthesis.Patchers
                 var v = CreateVariant(rc, suffix, name, u);
                 made[u] = v;
                 var c2 = CreateVariantCraftRecipe(rc.FormKey, v, ItemsFor(u), edid, suffix, false);
-                var t2 = CreateVariantTemperRecipe(v, temper, edid, suffix);
+                CreateVariantTemperRecipe(v, temper, edid, suffix);
                 crafting.CreateBreakdown(c2, v.FormKey);
-                if (s.Masterwork && masterwork.Available) masterwork.Process(v.FormKey, c2, t2);
                 if (s.CrossbowDescriptions) ctx.AddDescription(v, desc);
             }
 
@@ -298,14 +290,10 @@ namespace PoESynthesis.Patchers
             {
                 var v = CreateVariant(rc, suffix, name, a | b);
                 var c2 = CreateVariantCraftRecipe(rc.FormKey, v, ItemsFor(a | b), edid, suffix, true);
-                var t2 = CreateVariantTemperRecipe(v, temper, edid, suffix);
+                CreateVariantTemperRecipe(v, temper, edid, suffix);
                 crafting.CreateBreakdown(c2, v.FormKey);
-                var mw = s.Masterwork && masterwork.Available ? masterwork.Process(v.FormKey, c2, t2) : null;
-
-                var fromA = CreateVariantCraftRecipe(made[a].FormKey, v, ItemsFor(b), edid, suffix + "1", true);
-                if (mw != null) masterwork.CreateRecipes(mw, fromA, null, "_1", createBreakdown: false);
-                var fromB = CreateVariantCraftRecipe(made[b].FormKey, v, ItemsFor(a), edid, suffix + "2", true);
-                if (mw != null) masterwork.CreateRecipes(mw, fromB, null, "_2", createBreakdown: false);
+                CreateVariantCraftRecipe(made[a].FormKey, v, ItemsFor(b), edid, suffix + "1", true);
+                CreateVariantCraftRecipe(made[b].FormKey, v, ItemsFor(a), edid, suffix + "2", true);
                 if (s.CrossbowDescriptions) ctx.AddDescription(v, desc);
             }
             ctx.Log($"     Created crossbow variants of {edid}");

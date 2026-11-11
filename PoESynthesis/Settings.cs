@@ -30,7 +30,7 @@ namespace PoESynthesis
     public class GeneralSettings
     {
         [SynthesisTooltip("Skip any record that PathsOfEmpyrean.esp, or a plugin with PathsOfEmpyrean.esp as a master (official/community PoE patches), already overrides.\n" +
-            "Generated records (Masterwork, Quality, Lucky, ... versions) that already exist in the load order are never created twice, whatever this is set to.")]
+            "Generated records (Quality, Lucky, ... versions) that already exist in the load order are never created twice, whatever this is set to.")]
         public bool SkipRecordsHandledByPoEPatches = true;
 
         [SynthesisTooltip("Also treat records listed in formList INIs (Data/SKSE/Plugins/SkyPatcher/formList, and PoE 1.5's Data/SKSE/Plugins/POE/FormList) as already added to PoE form lists.")]
@@ -49,13 +49,13 @@ namespace PoESynthesis
             ModKey.FromNameAndExtension("Dragonborn.esm"),
         };
 
-        [SynthesisTooltip("Don't make Masterwork/Quality/variant copies, new recipes or breakdowns for items that carry Papyrus scripts " +
+        [SynthesisTooltip("Don't make Quality/variant copies, new recipes or breakdowns for items that carry Papyrus scripts " +
             "(Devious Devices restraints, quest items, ...): copies of those lose the script's identity checks. Keywords and conditions on their existing recipes still apply.")]
         public bool SkipScriptedItems = true;
 
         [SynthesisSettingName("Copies inherit KID keywords")]
         [SynthesisTooltip("KID rules that pick an original armor/weapon/ammo by EditorID, FormID, exact name or plugin don't reach its PoE copies " +
-            "(Masterwork, Quality, unenchanted, variants). Mirror them onto the copies in <patch name>_PoECopies_KID.ini in the Data folder.")]
+            "(Quality, unenchanted, variants). Mirror them onto the copies in <patch name>_PoECopies_KID.ini in the Data folder.")]
         public bool InheritKidKeywords = true;
 
         [SynthesisSettingName("Copies inherit SkyPatcher keywords")]
@@ -65,7 +65,7 @@ namespace PoESynthesis
 
         [SynthesisSettingName("Copies follow SkyPatcher stat changes")]
         [SynthesisTooltip("When SkyPatcher changes an original's armor rating, damage, value, weight or name in game (e.g. Requiem's rebalance), " +
-            "re-derive its PoE copies from those stats (Masterwork bonus on top, etc.) and write them to a SkyPatcher file that loads after every other rule, " +
+            "re-derive its PoE copies from those stats (variant/Quality bonus on top, etc.) and write them to a SkyPatcher file that loads after every other rule, " +
             "so keyword-based rules that also catch the copies don't wipe their bonuses.")]
         public bool CopiesFollowSkyPatcherStats = true;
 
@@ -101,10 +101,6 @@ namespace PoESynthesis
         [SynthesisSettingName("Create breakdown recipes")]
         [SynthesisTooltip("Craftable weapons and armor without a breakdown recipe get one (requires Meltdown).")]
         public bool BreakdownRecipes = true;
-
-        [SynthesisSettingName("Create Dragonblood Masterwork versions")]
-        [SynthesisTooltip("Craftable weapons and armor get a Masterwork version with crafting, tempering and breakdown recipes.")]
-        public bool Masterwork = true;
 
         [SynthesisSettingName("Create crossbow variants")]
         [SynthesisTooltip("Craftable crossbows get Recurve, Spring-Loaded, Light-Weight and Silenced variants (plus the Master Ranger dual-upgrade combinations).")]
@@ -142,10 +138,6 @@ namespace PoESynthesis
         [SynthesisTooltip("Tag rich clothing as Persuasive and sinister clothing as Intimidating.")]
         public bool Presence = true;
 
-        [SynthesisSettingName("Tailor condition on crafting recipes")]
-        [SynthesisTooltip("Existing clothing crafting recipes require the Tailor perk to be absent (Quality versions require it).")]
-        public bool TailorConditions = true;
-
         [SynthesisSettingName("Meltdown condition on breakdown recipes")]
         public bool MeltdownConditions = true;
 
@@ -153,12 +145,8 @@ namespace PoESynthesis
         public bool BreakdownRecipes = true;
 
         [SynthesisSettingName("Make clothing craftable")]
-        [SynthesisTooltip("Clothing without a crafting recipe gets one at the tanning rack (linen, plus a pelt for fur items). Rare clothing is only craftable as its Quality version.")]
+        [SynthesisTooltip("Clothing without a crafting recipe gets one at the tanning rack (linen, plus a pelt for fur items). Rare clothing is only craftable as its Quality version, which requires the Tailor perk.")]
         public bool CreateCraftingRecipes = true;
-
-        [SynthesisSettingName("Create Quality versions")]
-        [SynthesisTooltip("Craftable clothing gets a Quality version that requires the Tailor perk.")]
-        public bool QualityVersions = true;
 
         [SynthesisSettingName("Never make craftable")]
         [SynthesisTooltip("Clothing that should never get a new crafting recipe.")]

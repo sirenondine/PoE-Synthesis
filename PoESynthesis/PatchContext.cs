@@ -188,7 +188,7 @@ namespace PoESynthesis
         public bool CanCopy(IMajorRecordGetter r) =>
             !(Settings.General.SkipScriptedItems && r is IHaveVirtualMachineAdapterGetter v && v.VirtualMachineAdapter?.Scripts.Count > 0);
 
-        /// <summary>Item copies this run made (Masterwork, Quality, variants, ...) -> the record each was copied from.</summary>
+        /// <summary>Item copies this run made (Quality, variants, ...) -> the record each was copied from.</summary>
         public readonly Dictionary<FormKey, FormKey> CopiedFrom = new();
 
         readonly Dictionary<FormKey, Func<ItemStats, ItemStats>> copyTransforms = new();
@@ -218,7 +218,7 @@ namespace PoESynthesis
             return t(CopiedFrom.ContainsKey(src) ? DeriveCopy(src, original) : original);
         }
 
-        /// <summary>The load-order record a copy ultimately came from (a Masterwork of a crossbow variant leads to the crossbow).</summary>
+        /// <summary>The load-order record a copy ultimately came from (a copy of a copy leads to the first original).</summary>
         public FormKey OriginalOf(FormKey fk)
         {
             for (int guard = 0; guard < 16 && CopiedFrom.TryGetValue(fk, out var src); guard++) fk = src;

@@ -173,7 +173,7 @@ namespace PoESynthesis.Patchers
             {
                 MagicEffectType.Fire or MagicEffectType.Ice or MagicEffectType.Shock when doElements => Element(fk, type, conc, player, data?.Magnitude ?? 0),
                 MagicEffectType.Sun when doSun => Sun(fk, conc, player),
-                MagicEffectType.Poison or MagicEffectType.Disease when doPoison => PoisonDisease(fk, type == MagicEffectType.Disease),
+                MagicEffectType.Poison or MagicEffectType.Disease when doPoison => PoisonDisease(fk, type == MagicEffectType.Disease, player),
                 >= MagicEffectType.SummonUndead when doSummon => Summon(fk, type, spell),
                 _ => false,
             };
@@ -301,7 +301,7 @@ namespace PoESynthesis.Patchers
         }
 
         /// <summary>Damage keyword, no undead/dwarven/daedra restrictions, plus a half-cost copy that ignores resistance under Rite of the Old Gods.</summary>
-        bool PoisonDisease(FormKey fk, bool disease)
+        bool PoisonDisease(FormKey fk, bool disease, bool player)
         {
             var p = ctx.PoE;
             var eff = Eff(fk);
@@ -342,8 +342,8 @@ namespace PoESynthesis.Patchers
                 r.EditorID = edid;
                 r.Description = "";
                 r.ResistValue = ActorValue.None;
-                eff.Conditions.Insert(0, Cond(RiteData(), 0, Condition.RunOnType.Target));
-                r.Conditions.Insert(0, Cond(RiteData(), 1, Condition.RunOnType.Target));
+                eff.Conditions.Insert(0, RiteCondition(0, player));
+                r.Conditions.Insert(0, RiteCondition(1, player));
                 ctx.RegisterEdid(edid);
                 AddEffectToUsers(fk, r.FormKey);
                 copies++;
@@ -352,11 +352,19 @@ namespace PoESynthesis.Patchers
             return true;
         }
 
-        HasMagicEffectKeywordConditionData RiteData()
+        static readonly FormKey PlayerRef = FormKey.Factory("000014:Skyrim.esm");
+
+        /// <summary>
+        /// Rite of the Old Gods check on the effect's target (the caster's spell effects), or on the player for
+        /// "caster always player" effects, whose caster isn't the one holding Rite (v1.4).
+        /// </summary>
+        ConditionFloat RiteCondition(float value, bool player)
         {
             var d = new HasMagicEffectKeywordConditionData();
             d.Keyword.Link.SetTo(ctx.PoE.RiteOfTheOldGods!.Value);
-            return d;
+            if (!player) return Cond(d, value, Condition.RunOnType.Target);
+            d.Reference.SetTo(PlayerRef);
+            return Cond(d, value, Condition.RunOnType.Reference);
         }
 
         bool Summon(FormKey fk, MagicEffectType type, ISpellGetter spell)

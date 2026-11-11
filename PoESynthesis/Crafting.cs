@@ -91,13 +91,6 @@ namespace PoESynthesis
             return new ConditionFloat { CompareOperator = CompareOperator.EqualTo, ComparisonValue = has ? 1 : 0, Data = data };
         }
 
-        public static ConditionFloat GlobalCondition(FormKey global, CompareOperator op, float value)
-        {
-            var data = new GetGlobalValueConditionData();
-            data.Global.Link.SetTo(global);
-            return new ConditionFloat { CompareOperator = op, ComparisonValue = value, Data = data };
-        }
-
         public static ConditionFloat ItemCountCondition(FormKey item, CompareOperator op, float value, bool or = false)
         {
             var data = new GetItemCountConditionData();
@@ -114,9 +107,6 @@ namespace PoESynthesis
 
         public static bool HasPerkCondition(IConstructibleObjectGetter cobj, FormKey? perk) =>
             perk != null && cobj.Conditions.Any(c => c.Data is IHasPerkConditionDataGetter d && d.Perk.Link.FormKey == perk.Value);
-
-        public static bool HasGlobalCondition(IConstructibleObjectGetter cobj, FormKey? global) =>
-            global != null && cobj.Conditions.Any(c => c.Data is IGetGlobalValueConditionDataGetter d && d.Global.Link.FormKey == global.Value);
 
         /// <summary>Insert at the top, so OR groups further down keep working (AddPerkConditionAtTop).</summary>
         public static void AddAtTop(ConstructibleObject cobj, Condition c) => cobj.Conditions.Insert(0, c);

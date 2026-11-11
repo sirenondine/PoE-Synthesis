@@ -60,25 +60,6 @@ namespace PoESynthesis
 
         static float Trunc(float f) => MathF.Truncate(f);
 
-        // ---------------- Masterwork (PoEMasterworkVariant.pas) ----------------
-
-        public static Func<ItemStats, ItemStats> MasterworkArmor(int addPrice, int addArmor) => s => s with
-        {
-            Name = "Masterwork " + s.Name,
-            Value = Trunc(s.Value * 1.35f + addPrice),
-            Weight = s.Weight * 0.5f,
-            Rating = s.Rating + addArmor,
-        };
-
-        public static Func<ItemStats, ItemStats> MasterworkWeapon(int addPrice, int addDamage) => s => s with
-        {
-            Name = "Masterwork " + s.Name,
-            Value = Trunc(s.Value * 1.35f + addPrice),
-            Weight = s.Weight * 0.5f,
-            Rating = s.Rating + addDamage,
-            Crit = s.Crit + 1,
-        };
-
         // ---------------- clothing (PoEClothingPatcher.pas) ----------------
 
         public static Func<ItemStats, ItemStats> Quality(int add) => s => s with

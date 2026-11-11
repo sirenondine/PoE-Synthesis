@@ -18,7 +18,7 @@ namespace PoESynthesis
 
         // crafting
         public readonly FormKey? Cloth, Pelt, PerkArcane, PerkMeltdown, PerkTailor, PerkJeweler;
-        public readonly FormKey? QualityClothing, Masterwork, MasterworkActive;
+        public readonly FormKey? QualityClothing;
         // armor
         public readonly FormKey? Conductive, Intimidating, IntimidatingHead, Persuasive, Royal;
         public readonly Dictionary<string, (FormKey? Heavy, FormKey? Light)> MaterialMastery = new();
@@ -84,8 +84,6 @@ namespace PoESynthesis
             PerkTailor = P<IPerkGetter>("IWP_PERK_SMITH_Tailor");
             PerkJeweler = P<IPerkGetter>("IWP_PERK_SMITH_Jeweler");
             QualityClothing = P<IKeywordGetter>("SF_K_QualityClothing");
-            Masterwork = P<IKeywordGetter>("SF_K_Masterwork");
-            MasterworkActive = P<IGlobalGetter>("IWP_GLO_SMITH_DragonbloodMasterworkActive");
 
             foreach (var t in MaterialMasteryTypes)
             {
