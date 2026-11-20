@@ -30,7 +30,7 @@ namespace PoESynthesis
     public class GeneralSettings
     {
         [SynthesisTooltip("Skip any record that PathsOfEmpyrean.esp, or a plugin with PathsOfEmpyrean.esp as a master (official/community PoE patches), already overrides.\n" +
-            "Generated records (Quality, Lucky, ... versions) that already exist in the load order are never created twice, whatever this is set to.")]
+            "Generated records (unenchanted, Lucky, ... versions) that already exist in the load order are never created twice, whatever this is set to.")]
         public bool SkipRecordsHandledByPoEPatches = true;
 
         [SynthesisTooltip("Also treat records listed in formList INIs (Data/SKSE/Plugins/SkyPatcher/formList, and PoE 1.5's Data/SKSE/Plugins/POE/FormList) as already added to PoE form lists.")]
@@ -49,13 +49,13 @@ namespace PoESynthesis
             ModKey.FromNameAndExtension("Dragonborn.esm"),
         };
 
-        [SynthesisTooltip("Don't make Quality/variant copies, new recipes or breakdowns for items that carry Papyrus scripts " +
+        [SynthesisTooltip("Don't make variant copies, new recipes or breakdowns for items that carry Papyrus scripts " +
             "(Devious Devices restraints, quest items, ...): copies of those lose the script's identity checks. Keywords and conditions on their existing recipes still apply.")]
         public bool SkipScriptedItems = true;
 
         [SynthesisSettingName("Copies inherit KID keywords")]
         [SynthesisTooltip("KID rules that pick an original armor/weapon/ammo by EditorID, FormID, exact name or plugin don't reach its PoE copies " +
-            "(Quality, unenchanted, variants). Mirror them onto the copies in <patch name>_PoECopies_KID.ini in the Data folder.")]
+            "(unenchanted, variants). Mirror them onto the copies in <patch name>_PoECopies_KID.ini in the Data folder.")]
         public bool InheritKidKeywords = true;
 
         [SynthesisSettingName("Copies inherit SkyPatcher keywords")]
@@ -65,7 +65,7 @@ namespace PoESynthesis
 
         [SynthesisSettingName("Copies follow SkyPatcher stat changes")]
         [SynthesisTooltip("When SkyPatcher changes an original's armor rating, damage, value, weight or name in game (e.g. Requiem's rebalance), " +
-            "re-derive its PoE copies from those stats (variant/Quality bonus on top, etc.) and write them to a SkyPatcher file that loads after every other rule, " +
+            "re-derive its PoE copies from those stats (variant bonus on top, etc.) and write them to a SkyPatcher file that loads after every other rule, " +
             "so keyword-based rules that also catch the copies don't wipe their bonuses.")]
         public bool CopiesFollowSkyPatcherStats = true;
 
@@ -145,7 +145,7 @@ namespace PoESynthesis
         public bool BreakdownRecipes = true;
 
         [SynthesisSettingName("Make clothing craftable")]
-        [SynthesisTooltip("Clothing without a crafting recipe gets one at the tanning rack (linen, plus a pelt for fur items). Rare clothing is only craftable as its Quality version, which requires the Tailor perk.")]
+        [SynthesisTooltip("Clothing without a crafting recipe gets one at the tanning rack (linen, plus a pelt for fur items). Rare clothing's new recipe requires the Tailor perk.")]
         public bool CreateCraftingRecipes = true;
 
         [SynthesisSettingName("Never make craftable")]

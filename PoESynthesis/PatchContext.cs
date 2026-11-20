@@ -188,7 +188,7 @@ namespace PoESynthesis
         public bool CanCopy(IMajorRecordGetter r) =>
             !(Settings.General.SkipScriptedItems && r is IHaveVirtualMachineAdapterGetter v && v.VirtualMachineAdapter?.Scripts.Count > 0);
 
-        /// <summary>Item copies this run made (Quality, variants, ...) -> the record each was copied from.</summary>
+        /// <summary>Item copies this run made (unenchanted, variants, ...) -> the record each was copied from.</summary>
         public readonly Dictionary<FormKey, FormKey> CopiedFrom = new();
 
         readonly Dictionary<FormKey, Func<ItemStats, ItemStats>> copyTransforms = new();
@@ -199,15 +199,6 @@ namespace PoESynthesis
             CopiedFrom[copy.FormKey] = source.FormKey;
             copyTransforms[copy.FormKey] = transform;
             CopyStats.Write(copy, transform(CopyStats.Read(source)));
-        }
-
-        /// <summary>A copy changed again in place (rare clothing turned into its Quality version).</summary>
-        public void ExtendCopy(IMajorRecord copy, Func<ItemStats, ItemStats> transform)
-        {
-            var before = CopyStats.Read(copy);
-            var first = copyTransforms.TryGetValue(copy.FormKey, out var t) ? t : CopyStats.Identity;
-            copyTransforms[copy.FormKey] = s => transform(first(s));
-            CopyStats.Write(copy, transform(before));
         }
 
         /// <summary>A copy's stats when its original has <paramref name="original"/> (walks copies of copies).</summary>

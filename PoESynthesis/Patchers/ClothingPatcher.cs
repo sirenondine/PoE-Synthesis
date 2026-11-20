@@ -9,20 +9,19 @@ using Mutagen.Bethesda.Skyrim;
 namespace PoESynthesis.Patchers
 {
     /// <summary>
-    /// PoEClothingPatcher.pas: Presence keywords, Meltdown conditions, crafting/breakdown recipes. Since v1.4 (PoE 1.6+) only rare
-    /// clothing needs Tailor: it is made craftable as its Quality version. Other clothing gets no Quality version or Tailor condition.
+    /// PoEClothingPatcher.pas: Presence keywords, Meltdown conditions, crafting/breakdown recipes. Since v1.4/v1.5 (PoE 1.6+) no
+    /// Quality versions are made; a new recipe for rare clothing requires Tailor, other recipes get no Tailor condition.
     /// </summary>
     public class ClothingPatcher
     {
         const int CountBodyHead = 7, CountBody = 5, CountHood = 3, CountBoots = 3, CountOther = 2;
-        const int QualityAddBody = 26, QualityAddOther = 18;
 
         readonly PatchContext ctx;
         readonly ItemChecks items;
         readonly Crafting crafting;
         readonly ClothingSettings s;
         readonly HashSet<FormKey> notCraftable;
-        int tagged, recipes, quality, conditions, breakdowns;
+        int tagged, recipes, rareRecipes, conditions, breakdowns;
 
         public ClothingPatcher(PatchContext ctx, ItemChecks items, Crafting crafting)
         {
@@ -64,7 +63,7 @@ namespace PoESynthesis.Patchers
             {
                 ProcessClothing(ctx.Current<IArmorGetter>(a.FormKey)!);
             }
-            Console.WriteLine($"Clothing: {tagged} tagged, {conditions} Meltdown conditions, {breakdowns} breakdowns for existing recipes, {recipes} new crafting recipes ({quality} of them Quality-only rare clothing)");
+            Console.WriteLine($"Clothing: {tagged} tagged, {conditions} Meltdown conditions, {breakdowns} breakdowns for existing recipes, {recipes} new crafting recipes ({rareRecipes} of them for rare clothing, requiring Tailor)");
         }
 
         /// <summary>Clothing recipes whose own plugin or item is patched, and that PoE has not already handled.</summary>
@@ -99,22 +98,23 @@ namespace PoESynthesis.Patchers
             }
 
             // the xEdit options only offer "Craft" for items without a recipe or template that aren't uniquely enchanted;
-            // already-craftable clothing keeps its recipe as it is (v1.4: no Quality version any more)
+            // already-craftable clothing keeps its recipe as it is (v1.4: no Quality versions any more)
             if (craftInfo != null || !s.CreateCraftingRecipes || p.Cloth == null) return;
             if (!ctx.CanCopy(rc) || ItemChecks.HasTemplate(rc) || (enchanted && ctx.HasKeyword(rc, "MagicDisallowEnchanting")) || notCraftable.Contains(rc.FormKey)) return;
-            // rare clothing is only craftable in Quality form, and only with Tailor
+            // rare clothing is only craftable with Tailor (v1.5: as itself, no longer as a Quality version)
             bool rare = items.IsRareClothing(rc, edid, full);
-            if (rare && (p.PerkTailor == null || p.QualityClothing == null)) return;
+            if (rare && p.PerkTailor == null) return;
 
             IArmorGetter craftItem = rc;
-            if (enchanted || rare)
+            if (enchanted)
             {
-                var made = CreateUnenchantedVersion(rc, enchanted, rare);
+                var made = CreateUnenchantedVersion(rc);
                 if (made == null) return;
                 craftItem = made;
             }
             var newRecipe = CreateClothingRecipe(craftItem, rare);
             recipes++;
+            if (rare) rareRecipes++;
             ctx.Log($"     Created crafting recipe -> {newRecipe.EditorID}");
             if (s.BreakdownRecipes && p.PerkMeltdown != null)
             {
@@ -150,37 +150,19 @@ namespace PoESynthesis.Patchers
             ctx.Log($"Tagged {PatchContext.Show(rc)}: {string.Join(", ", add.Select(k => ctx.KeywordEdid(k!.Value)))}");
         }
 
-        /// <summary>CreateUnenchantedVersion: craftable copy without the enchantment; rare clothing becomes its Quality version.</summary>
-        IArmorGetter? CreateUnenchantedVersion(IArmorGetter rc, bool enchanted, bool rare)
+        /// <summary>CreateUnenchantedVersion: craftable copy without the enchantment.</summary>
+        IArmorGetter? CreateUnenchantedVersion(IArmorGetter rc)
         {
-            var edid = enchanted ? PatchContext.Prefix + PatchContext.StripPrefix(rc.EditorID) + "_unench" : rc.EditorID;
-            if (edid != null && enchanted && ctx.EdidExists(edid)) return null;
-            if (rare && ctx.EdidExists(QualityEdid(edid))) return null;
+            var edid = PatchContext.Prefix + PatchContext.StripPrefix(rc.EditorID) + "_unench";
+            if (ctx.EdidExists(edid)) return null;
 
             var copy = ctx.Patch.Armors.DuplicateInAsNewRecord(rc);
             ctx.RegisterCopy(copy, rc, CopyStats.Identity);
             copy.ObjectEffect.Clear();
             copy.EditorID = edid;
-            if (rare) return CreateQualityVersion(copy, copy);
-            ctx.RegisterEdid(copy.EditorID!);
+            ctx.RegisterEdid(edid);
             ctx.Log($"     Created unenchanted version for crafting -> {copy.EditorID}");
             return copy;
-        }
-
-        static string QualityEdid(string? edid) => PatchContext.Prefix + PatchContext.StripPrefix(edid) + "_Q";
-
-        /// <summary>CreateQualityVersion: in-place conversion of the rare item's copy into 'Quality ...', worth more, tagged SF_K_QualityClothing.</summary>
-        IArmorGetter CreateQualityVersion(IArmorGetter rc, Armor q)
-        {
-            var edid = QualityEdid(rc.EditorID);
-            var add = ctx.HasKeyword(rc, "ClothingBody") ? QualityAddBody : QualityAddOther;
-            ctx.ExtendCopy(q, CopyStats.Quality(add));
-            q.EditorID = edid;
-            PatchContext.AddKeyword(q, ctx.PoE.QualityClothing);
-            ctx.RegisterEdid(edid);
-            quality++;
-            ctx.Log($"     Created Quality version -> {edid}");
-            return q;
         }
 
         /// <summary>CreateClothingRecipe (new recipe): linen by slot, one less for cold/poor or fur items, plus a pelt for fur.</summary>

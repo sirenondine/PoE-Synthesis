@@ -60,14 +60,6 @@ namespace PoESynthesis
 
         static float Trunc(float f) => MathF.Truncate(f);
 
-        // ---------------- clothing (PoEClothingPatcher.pas) ----------------
-
-        public static Func<ItemStats, ItemStats> Quality(int add) => s => s with
-        {
-            Name = "Quality " + s.Name,
-            Value = Trunc(s.Value * 1.35f + add),
-        };
-
         // ---------------- crossbows (PoECrossbowVariant.pas) ----------------
 
         public static Func<ItemStats, ItemStats> Crossbow(string namePrefix, bool recurve, bool springLoaded, bool lightWeight, bool silenced) => s =>

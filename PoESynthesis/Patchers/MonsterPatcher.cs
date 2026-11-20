@@ -49,7 +49,7 @@ namespace PoESynthesis.Patchers
             if (H("bear")) return "Bear";
             if (H("chaurus")) return "Chaurus";
             if (H("daedr", "dremora", "atronach")) return "Daedra";
-            // Deer and Rodent came with xEdit patcher v1.3; its own guess doesn't fill them in, so these follow the vanilla races PoE 1.5 tags (DeerRace, ElkRace, SkeeverRace)
+            // same order as the v1.5/v1.6 xEdit guess (Deer and Rodent added), except dragons: the xEdit form pre-selects Draugr for them
             if (H("deer", "elk")) return "Deer";
             if (H("dragon") || ctx.HasKeyword(r, "ActorTypeDragon")) return "Dragon";
             if (H("draugr", "skeleton", "lich", "undead")) return "Draugr";
