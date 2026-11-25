@@ -172,26 +172,36 @@ namespace PoESynthesis.Patchers
             ctx.RegisterEdid(lb.EditorID);
             ctx.Log($"     Created longbow version {lb.EditorID}");
 
+            (FormKey Item, int Count, int Index)? main = null;
             if (craftInfo == null)
             {
-                ctx.Log($"     WARNING: no crafting recipe for the longbow version of {edid}: the bow has none");
-                return true;
+                // v1.7: a bow that can't be crafted gets a forge conversion recipe, shortbow -> longbow
+                var conv = crafting.NewRecipe(Crafting.PrefixCraft + edid + "_L", lb.FormKey, 1, new[] { (e.FormKey, 1) }, Crafting.Forge);
+                conv.Conditions.Add(Crafting.ItemCountCondition(e.FormKey, CompareOperator.GreaterThanOrEqualTo, 1));
+                ctx.Log($"     Created conversion recipe for the longbow version of {edid}");
             }
-            var craft = ctx.Cache.Resolve<IConstructibleObjectGetter>(craftInfo.Cobj);
-            var craft2 = crafting.CopyRecipe(craft, Crafting.PrefixCraft + edid + "_L", lb.FormKey);
-            var main = crafting.MainIngredient(craft2);
-            if (main != null && craft2.Items != null) craft2.Items[main.Value.Index].Item.Count = main.Value.Count + 1;
-            crafting.CreateBreakdown(craft2);
+            else
+            {
+                var craft = ctx.Cache.Resolve<IConstructibleObjectGetter>(craftInfo.Cobj);
+                var craft2 = crafting.CopyRecipe(craft, Crafting.PrefixCraft + edid + "_L", lb.FormKey);
+                main = crafting.MainIngredient(craft2);
+                if (main != null && craft2.Items != null) craft2.Items[main.Value.Index].Item.Count = main.Value.Count + 1;
+                crafting.CreateBreakdown(craft2);
+            }
 
             if (temperInfo != null)
             {
                 crafting.CopyRecipe(ctx.Cache.Resolve<IConstructibleObjectGetter>(temperInfo.Cobj), Crafting.PrefixTemper + edid + "_L", lb.FormKey);
             }
-            else
+            else if (main != null)
             {
                 // the xEdit script makes an empty stub here; a stub needs an input, so the bow's main material is used
-                var input = main?.Item ?? lb.FormKey;
-                crafting.NewRecipe(Crafting.PrefixTemper + lb.EditorID, lb.FormKey, 1, new[] { (input, 1) }, Crafting.SharpeningWheel);
+                crafting.NewRecipe(Crafting.PrefixTemper + lb.EditorID, lb.FormKey, 1, new[] { (main.Value.Item, 1) }, Crafting.SharpeningWheel);
+            }
+            else
+            {
+                // no recipe to take a material from: the shortbow can't be tempered either, so neither can the longbow
+                ctx.Log($"     No tempering recipe for the longbow version of {edid}: the bow has none and no crafting recipe to take a material from");
             }
             return true;
         }

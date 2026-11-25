@@ -111,7 +111,7 @@ namespace PoESynthesis
         public bool CrossbowDescriptions = true;
 
         [SynthesisSettingName("Create longbow versions")]
-        [SynthesisTooltip("Bows get a Longbow version and are renamed '... Shortbow'. Off by default: the xEdit patcher only does this for bows you pick, usually with a custom longbow mesh.")]
+        [SynthesisTooltip("Bows get a Longbow version and are renamed '... Shortbow'. Off by default: the xEdit patcher only does this for bows you pick, usually with a custom longbow mesh. A bow that can't be crafted gets a forge recipe that converts the shortbow into the longbow.")]
         public bool Longbows = false;
 
         [SynthesisSettingName("Longbow bows")]

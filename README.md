@@ -5,14 +5,14 @@ A [Synthesis](https://github.com/Mutagen-Modding/Synthesis) port of the official
 by steelfeathers. It does what the xEdit scripts do, but across the whole load order in one run.
 Each part has its own on/off switch, and records that PoE or a PoE patch already covers are skipped.
 
-Ported from xEdit patcher **v1.6** (2026-11-20), for Paths of Empyrean 1.7. The spell patcher's source is marked internal-only, but the
+Ported from xEdit patcher **v1.7** (2026-11-24), for Paths of Empyrean 1.7. The spell patcher's source is marked internal-only, but the
 main script runs it, so it is ported too (Spells below); turn **Spells** off to skip it.
 
 ## What it patches
 
 | Patcher | Toggles |
 |---|---|
-| **Weapons & Armor** | Material Mastery / Presence / Royal / Conductive keywords · Meltdown condition on breakdown recipes · new breakdown recipes · crossbow variants (Recurve, Spring-Loaded, Light-Weight, Silenced and the six Master Ranger combinations) plus a Description Framework INI · longbow versions (off by default) · bound weapon keyword |
+| **Weapons & Armor** | Material Mastery / Presence / Royal / Conductive keywords · Meltdown condition on breakdown recipes · new breakdown recipes · crossbow variants (Recurve, Spring-Loaded, Light-Weight, Silenced and the six Master Ranger combinations) plus a Description Framework INI · longbow versions (off by default; a bow that can't be crafted gets a forge recipe converting the shortbow into the longbow) · bound weapon keyword |
 | **Clothing** | Presence keywords · Meltdown condition · breakdown recipes · tanning-rack recipes for clothing that can't be crafted yet (rare clothing needs Tailor) |
 | **Gems & Jewelry** | Jeweler condition on gem jewelry recipes · Lithomancy gem keywords · royal keyword on circlets · gem ↔ flawless gem recipes |
 | **Ammo** | Lucky arrow/bolt versions (with tokens and PoE's Lucky Arrow lists) · Barbed/Broadhead bolts |
@@ -108,7 +108,8 @@ Records are skipped when any of these is true:
   the xEdit script's write to it does nothing. Each rune impact gets its own big copy; the xEdit script
   points every material at the first one.
 - A longbow without a tempering recipe gets a stub tempering recipe that uses the bow's main
-  material. The xEdit stub has no input at all.
+  material. The xEdit stub has no input at all. A bow with neither a crafting nor a tempering recipe
+  has no material to use, so its longbow gets no tempering recipe, like the bow itself.
 
 ## Building / running locally
 
